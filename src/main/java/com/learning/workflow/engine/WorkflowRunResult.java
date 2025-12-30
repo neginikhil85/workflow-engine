@@ -1,0 +1,15 @@
+package com.learning.workflow.engine;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class WorkflowRunResult {
+    private Object output;
+    private List<String> executedNodeIds;
+}
