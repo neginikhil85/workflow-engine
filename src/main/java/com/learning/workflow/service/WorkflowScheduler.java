@@ -81,4 +81,12 @@ public class WorkflowScheduler {
         ScheduledFuture<?> future = taskScheduler.schedule(task, new CronTrigger(cronExpression));
         scheduledTasks.put(workflowId, future);
     }
+
+    /**
+     * Check if a workflow is currently scheduled
+     */
+    public boolean isScheduled(String workflowId) {
+        ScheduledFuture<?> future = scheduledTasks.get(workflowId);
+        return future != null && !future.isCancelled() && !future.isDone();
+    }
 }

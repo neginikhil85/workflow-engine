@@ -30,3 +30,23 @@ management:
       enabled: true
     prometheus:
       enabled: true
+
+# Suppress verbose Kafka logs - only show WARN/ERROR for config dumps
+logging:
+  level:
+    # Kafka Admin
+    org.apache.kafka.clients.admin.AdminClientConfig: WARN
+    # Kafka Producer - suppress config dumps
+    org.apache.kafka.clients.producer.ProducerConfig: WARN
+    org.apache.kafka.clients.producer.KafkaProducer: WARN
+    org.apache.kafka.clients.producer.internals.TransactionManager: WARN
+    # Kafka Consumer - suppress config dumps
+    org.apache.kafka.clients.consumer.ConsumerConfig: WARN
+    org.apache.kafka.clients.consumer.internals: WARN
+    # Kafka Common - suppress verbose internals
+    org.apache.kafka.common.utils.AppInfoParser: WARN
+    org.apache.kafka.common.metrics.Metrics: WARN
+    org.apache.kafka.clients.Metadata: WARN
+    org.apache.kafka.common.telemetry: WARN
+    # Keep coordinator logs at WARN (very verbose during rebalance)
+    org.apache.kafka.clients.consumer.internals.ConsumerCoordinator: WARN

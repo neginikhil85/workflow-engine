@@ -8,9 +8,10 @@ import java.util.List;
 
 @Repository
 public interface WorkflowExecutionRepository extends MongoRepository<WorkflowExecution, String> {
-    
-    List<WorkflowExecution> findByWorkflowIdOrderByStartedAtDesc(String workflowId);
-    
-    List<WorkflowExecution> findByStatus(String status);
-}
 
+    List<WorkflowExecution> findByWorkflowIdOrderByStartedAtDesc(String workflowId);
+
+    List<WorkflowExecution> findByStatus(String status);
+
+    List<WorkflowExecution> findByWorkflowIdAndStatus(String workflowId, String status);
+}

@@ -42,8 +42,8 @@ public class WorkflowRestController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<WorkflowDefinition> updateWorkflow(@PathVariable String id, 
-                                                             @RequestBody WorkflowDefinition workflow) {
+    public ResponseEntity<WorkflowDefinition> updateWorkflow(@PathVariable String id,
+            @RequestBody WorkflowDefinition workflow) {
         workflow.setId(id);
         WorkflowDefinition updated = workflowService.saveWorkflow(workflow);
         return ResponseEntity.ok(updated);
@@ -60,8 +60,8 @@ public class WorkflowRestController {
     }
 
     @PostMapping("/{id}/execute")
-    public ResponseEntity<Object> executeWorkflow(@PathVariable String id, 
-                                                  @RequestBody Map<String, Object> input) {
+    public ResponseEntity<Object> executeWorkflow(@PathVariable String id,
+            @RequestBody Map<String, Object> input) {
         try {
             Object result = workflowService.executeWorkflow(id, input);
             return ResponseEntity.ok(Map.of("success", true, "result", result));
@@ -75,5 +75,26 @@ public class WorkflowRestController {
     public List<WorkflowExecution> getExecutionHistory(@PathVariable String id) {
         return workflowService.getExecutionHistory(id);
     }
-}
 
+    @PostMapping("/{id}/stop")
+    public ResponseEntity<Object> stopWorkflow(@PathVariable String id) {
+        try {
+            workflowService.stopWorkflow(id);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Workflow stopped"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}/status")
+    public ResponseEntity<Object> getWorkflowStatus(@PathVariable String id) {
+        try {
+            boolean isRunning = workflowService.isWorkflowRunning(id);
+            return ResponseEntity.ok(Map.of("isRunning", isRunning));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+}

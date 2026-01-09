@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +24,9 @@ public class WorkflowService {
     private final WorkflowExecutionRepository executionRepository;
     private final WorkflowDefinitionMapper workflowMapper;
     private final WorkflowScheduler workflowScheduler;
+
+    // Track running workflow threads for cancellation
+    private final Map<String, Thread> runningExecutions = new ConcurrentHashMap<>();
 
     /**
      * Execute a workflow by ID
@@ -40,6 +44,10 @@ public class WorkflowService {
         execution.setStartedAt(LocalDateTime.now());
         execution = executionRepository.save(execution);
 
+        // Track the current thread for potential cancellation
+        final String executionId = execution.getId();
+        runningExecutions.put(executionId, Thread.currentThread());
+
         try {
             // Execute workflow
             com.learning.workflow.engine.WorkflowRunResult runResult = workflowEngine.run(workflow, input);
@@ -55,11 +63,19 @@ public class WorkflowService {
                     "output", runResult.getOutput() != null ? runResult.getOutput() : "null",
                     "executedNodes", runResult.getExecutedNodeIds());
         } catch (Exception e) {
-            execution.setStatus("FAILED");
-            execution.setError(e.getMessage());
+            // Check if this was a cancellation
+            if (Thread.currentThread().isInterrupted()) {
+                execution.setStatus("CANCELLED");
+                execution.setError("Workflow execution was cancelled");
+            } else {
+                execution.setStatus("FAILED");
+                execution.setError(e.getMessage());
+            }
             execution.setCompletedAt(LocalDateTime.now());
             executionRepository.save(execution);
             throw e;
+        } finally {
+            runningExecutions.remove(executionId);
         }
     }
 
@@ -114,4 +130,42 @@ public class WorkflowService {
         return executionRepository.findByWorkflowIdOrderByStartedAtDesc(workflowId);
     }
 
+    /**
+     * Stop a running workflow execution
+     */
+    public void stopWorkflow(String workflowId) {
+        log.info(">>> STOPPING WORKFLOW: {}", workflowId);
+
+        // 1. Unschedule any cron jobs for this workflow
+        workflowScheduler.unscheduleWorkflow(workflowId);
+
+        // 2. Find any running executions for this workflow and cancel them
+        List<WorkflowExecution> runningExecs = executionRepository.findByWorkflowIdAndStatus(workflowId, "RUNNING");
+        for (WorkflowExecution exec : runningExecs) {
+            Thread thread = runningExecutions.get(exec.getId());
+            if (thread != null) {
+                log.info("Interrupting execution thread: {}", exec.getId());
+                thread.interrupt();
+            }
+            exec.setStatus("CANCELLED");
+            exec.setCompletedAt(LocalDateTime.now());
+            exec.setError("Stopped by user");
+            executionRepository.save(exec);
+        }
+
+        log.info("Workflow {} stopped successfully", workflowId);
+    }
+
+    /**
+     * Check if a workflow is currently running
+     */
+    public boolean isWorkflowRunning(String workflowId) {
+        // Check for any RUNNING executions
+        List<WorkflowExecution> runningExecs = executionRepository.findByWorkflowIdAndStatus(workflowId, "RUNNING");
+        if (!runningExecs.isEmpty()) {
+            return true;
+        }
+        // Also check if it's scheduled (cron job)
+        return workflowScheduler.isScheduled(workflowId);
+    }
 }
