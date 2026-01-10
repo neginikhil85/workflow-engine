@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.learning.workflow.constant.WorkflowConstants.ERR_NO_EXECUTOR;
+
 /**
  * Maps NodeType → NodeExecutor dynamically at runtime
  */
@@ -14,7 +16,6 @@ import java.util.List;
 public class NodeTypeRegistry {
 
     private final Map<String, NodeExecutor> registry = new HashMap<>();
-    private static final String ERR_NO_EXECUTOR = "No executor registered for nodeType: ";
 
     public NodeTypeRegistry(List<NodeExecutor> executors) {
         for (NodeExecutor executor : executors) {

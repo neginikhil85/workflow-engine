@@ -1,0 +1,189 @@
+package com.learning.workflow.service;
+
+import com.learning.workflow.engine.WorkflowEngine;
+import com.learning.workflow.model.core.ExecutionStatus;
+import com.learning.workflow.model.core.WorkflowDefinition;
+import com.learning.workflow.model.core.WorkflowExecution;
+import com.learning.workflow.model.core.WorkflowRun;
+import com.learning.workflow.repository.WorkflowDefinitionRepository;
+import com.learning.workflow.repository.WorkflowExecutionRepository;
+import com.learning.workflow.repository.WorkflowRunRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static com.learning.workflow.constant.WorkflowConstants.*;
+
+/**
+ * Handles workflow execution lifecycle.
+ * Responsibilities: Execute, Stop, Track running executions.
+ */
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class WorkflowExecutionService {
+
+    private final WorkflowEngine workflowEngine;
+    private final WorkflowDefinitionRepository workflowRepository;
+    private final WorkflowExecutionRepository executionRepository;
+    private final WorkflowRunRepository runRepository;
+    private final WorkflowScheduler workflowScheduler;
+
+    // Track running workflow threads for cancellation
+    private final Map<String, Thread> runningExecutions = new ConcurrentHashMap<>();
+
+    /**
+     * Execute a workflow by ID (creates a new Run for MANUAL triggers)
+     */
+    public Object executeWorkflow(String workflowId, Object input) {
+        return executeWorkflow(workflowId, input, null, WorkflowRun.TriggerType.MANUAL);
+    }
+
+    /**
+     * Execute a workflow within an existing Run (used by Cron/Kafka ticks)
+     */
+    public Object executeWorkflowWithRun(String workflowId, Object input, String runId) {
+        return executeWorkflow(workflowId, input, runId, null);
+    }
+
+    /**
+     * Core execution logic - creates or reuses a WorkflowRun
+     */
+    private Object executeWorkflow(String workflowId, Object input, String existingRunId,
+            WorkflowRun.TriggerType triggerType) {
+        log.info(LOG_STARTING_EXECUTION, workflowId);
+
+        WorkflowDefinition workflow = workflowRepository.findByIdAndActiveTrue(workflowId)
+                .orElseThrow(() -> new RuntimeException(ERR_WORKFLOW_NOT_FOUND + workflowId));
+
+        // --- WorkflowRun Logic ---
+        WorkflowRun run = getOrCreateRun(workflowId, existingRunId, triggerType);
+        if (run == null) {
+            return Map.of(KEY_SKIPPED, true, KEY_REASON, REASON_RUN_STOPPED);
+        }
+
+        // Create execution record linked to Run
+        WorkflowExecution execution = createExecution(workflowId, run.getId());
+        runningExecutions.put(execution.getId(), Thread.currentThread());
+
+        boolean failed = false;
+        try {
+            var runResult = workflowEngine.run(workflow, input, run.getId());
+            completeExecution(execution, runResult);
+            return Map.of(
+                    KEY_RUN_ID, run.getId(),
+                    KEY_OUTPUT, runResult.getOutput() != null ? runResult.getOutput() : DEFAULT_NULL,
+                    KEY_EXECUTED_NODES, runResult.getExecutedNodeIds());
+        } catch (Exception e) {
+            failed = true;
+            failExecution(execution, e);
+            throw e;
+        } finally {
+            runningExecutions.remove(execution.getId());
+            updateRunStats(run, failed);
+        }
+    }
+
+    private WorkflowRun getOrCreateRun(String workflowId, String existingRunId, WorkflowRun.TriggerType triggerType) {
+        if (existingRunId != null) {
+            WorkflowRun run = runRepository.findById(existingRunId)
+                    .orElseThrow(() -> new RuntimeException(ERR_RUN_NOT_FOUND + existingRunId));
+            if (run.getStatus() == WorkflowRun.RunStatus.STOPPED) {
+                log.warn(LOG_SKIPPING_STOPPED, existingRunId);
+                return null;
+            }
+            return run;
+        }
+
+        WorkflowRun run = WorkflowRun.builder()
+                .workflowId(workflowId)
+                .triggerType(triggerType)
+                .status(WorkflowRun.RunStatus.ACTIVE)
+                .startTime(LocalDateTime.now())
+                .totalExecutions(0)
+                .failedExecutions(0)
+                .build();
+        run = runRepository.save(run);
+        log.info(LOG_CREATED_RUN, run.getId());
+        return run;
+    }
+
+    private WorkflowExecution createExecution(String workflowId, String runId) {
+        WorkflowExecution execution = new WorkflowExecution();
+        execution.setWorkflowId(workflowId);
+        execution.setRunId(runId);
+        execution.setStatus(ExecutionStatus.RUNNING);
+        execution.setStartedAt(LocalDateTime.now());
+        return executionRepository.save(execution);
+    }
+
+    private void completeExecution(WorkflowExecution execution, com.learning.workflow.engine.WorkflowRunResult result) {
+        execution.setStatus(ExecutionStatus.COMPLETED);
+        execution.setCompletedAt(LocalDateTime.now());
+        execution.setResult(result.getOutput());
+        execution.setExecutedNodes(result.getExecutedNodeIds());
+        executionRepository.save(execution);
+    }
+
+    private void failExecution(WorkflowExecution execution, Exception e) {
+        if (Thread.currentThread().isInterrupted()) {
+            execution.setStatus(ExecutionStatus.CANCELLED);
+            execution.setError(ERR_EXECUTION_CANCELLED);
+        } else {
+            execution.setStatus(ExecutionStatus.FAILED);
+            execution.setError(e.getMessage());
+        }
+        execution.setCompletedAt(LocalDateTime.now());
+        executionRepository.save(execution);
+    }
+
+    private void updateRunStats(WorkflowRun run, boolean failed) {
+        run.setTotalExecutions(run.getTotalExecutions() + 1);
+        if (failed) {
+            run.setFailedExecutions(run.getFailedExecutions() + 1);
+        }
+        run.setLastHeartbeat(LocalDateTime.now());
+        runRepository.save(run);
+    }
+
+    /**
+     * Stop a running workflow execution
+     */
+    public void stopWorkflow(String workflowId) {
+        log.info(LOG_STOPPING_WORKFLOW, workflowId);
+
+        workflowScheduler.unscheduleWorkflow(workflowId);
+
+        runRepository.findByWorkflowIdAndStatus(workflowId, WorkflowRun.RunStatus.ACTIVE)
+                .ifPresent(run -> {
+                    run.setStatus(WorkflowRun.RunStatus.STOPPED);
+                    run.setEndTime(LocalDateTime.now());
+                    runRepository.save(run);
+                    log.info(LOG_STOPPED_RUN, run.getId());
+                });
+
+        cancelRunningExecutions(workflowId);
+        log.info(LOG_WORKFLOW_STOPPED, workflowId);
+    }
+
+    private void cancelRunningExecutions(String workflowId) {
+        List<WorkflowExecution> runningExecs = executionRepository.findByWorkflowIdAndStatus(workflowId,
+                ExecutionStatus.RUNNING);
+        for (WorkflowExecution exec : runningExecs) {
+            Thread thread = runningExecutions.get(exec.getId());
+            if (thread != null) {
+                log.info(LOG_INTERRUPTING_THREAD, exec.getId());
+                thread.interrupt();
+            }
+            exec.setStatus(ExecutionStatus.CANCELLED);
+            exec.setCompletedAt(LocalDateTime.now());
+            exec.setError(ERR_STOPPED_BY_USER);
+            executionRepository.save(exec);
+        }
+    }
+}

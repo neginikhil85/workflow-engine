@@ -9,8 +9,12 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 
+import static com.learning.workflow.constant.WorkflowConstants.EXPR_VAR_INPUT;
+import static com.learning.workflow.constant.WorkflowConstants.EXPR_VAR_CTX;
+
 /**
- * Evaluates runtime conditions and templates using Spring Expression Language (SpEL).
+ * Evaluates runtime conditions and templates using Spring Expression Language
+ * (SpEL).
  *
  * Supports:
  * - Boolean condition evaluation
@@ -21,9 +25,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExpressionEvaluator {
 
-    private static final String INPUT_VAR = "input";
-    private static final String CONTEXT_VAR = "ctx";
-
     private final ExpressionParser parser = new SpelExpressionParser();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -31,7 +32,7 @@ public class ExpressionEvaluator {
      * Evaluates a boolean SpEL expression.
      *
      * Example:
-     *   expr: "input.amount > 100 && ctx.status == 'ACTIVE'"
+     * expr: "input.amount > 100 && ctx.status == 'ACTIVE'"
      */
     public boolean evaluate(String expr, Object input, ExecutionContext ctx) {
         if (expr == null || expr.isBlank()) {
@@ -47,7 +48,7 @@ public class ExpressionEvaluator {
      * Parses a template expression supporting ${...}
      *
      * Example:
-     *   "Order ${input.id} created with data ${input}"
+     * "Order ${input.id} created with data ${input}"
      */
     public String parseTemplate(String template, Object input, ExecutionContext ctx) {
         if (template == null) {
@@ -58,7 +59,7 @@ public class ExpressionEvaluator {
 
         Object value = parser
                 .parseExpression(template, new TemplateParserContext("${", "}"))
-                .getValue(context, Object.class);   // IMPORTANT: Object, not String
+                .getValue(context, Object.class); // IMPORTANT: Object, not String
 
         return stringify(value);
     }
@@ -69,8 +70,8 @@ public class ExpressionEvaluator {
     private StandardEvaluationContext buildContext(Object input, ExecutionContext ctx) {
         StandardEvaluationContext context = new StandardEvaluationContext();
         context.addPropertyAccessor(new MapAccessor());
-        context.setVariable(INPUT_VAR, input);
-        context.setVariable(CONTEXT_VAR, ctx);
+        context.setVariable(EXPR_VAR_INPUT, input);
+        context.setVariable(EXPR_VAR_CTX, ctx);
         return context;
     }
 

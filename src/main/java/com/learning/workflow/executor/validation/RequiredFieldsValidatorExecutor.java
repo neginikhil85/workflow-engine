@@ -9,6 +9,9 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 
+import static com.learning.workflow.constant.WorkflowConstants.FIELD_ID;
+import static com.learning.workflow.constant.WorkflowConstants.FIELD_NAME;
+
 @Component
 public class RequiredFieldsValidatorExecutor implements NodeExecutor {
 
@@ -32,10 +35,8 @@ public class RequiredFieldsValidatorExecutor implements NodeExecutor {
         if (config != null && config.containsKey("requiredFields")) {
             requiredFields = (List<String>) config.get("requiredFields");
         } else {
-            // Fallback required fields
-            requiredFields = List.of(
-                    ValidationConstants.FIELD_ID,
-                    ValidationConstants.FIELD_NAME);
+            // Fallback required fields from WorkflowConstants
+            requiredFields = List.of(FIELD_ID, FIELD_NAME);
         }
 
         // Validate
@@ -50,7 +51,6 @@ public class RequiredFieldsValidatorExecutor implements NodeExecutor {
 
     @Override
     public Map<String, Object> getDefaultConfig() {
-        return Map.of(
-                "requiredFields", List.of("id", "name"));
+        return Map.of("requiredFields", List.of(FIELD_ID, FIELD_NAME));
     }
 }

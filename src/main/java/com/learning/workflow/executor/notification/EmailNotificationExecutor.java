@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+import static com.learning.workflow.constant.WorkflowConstants.*;
+
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -31,16 +33,15 @@ public class EmailNotificationExecutor implements NodeExecutor {
     public NodeExecutionResult execute(NodeDefinition node, Object input, ExecutionContext ctx) {
         Map<String, Object> config = node.getConfig();
 
-        // Debug logging
         log.info("DEBUG: Email Node Config: {}", config);
 
-        String to = (String) config.get("to");
-        String subjectRaw = (String) config.get("subject");
-        String bodyRaw = (String) config.get("body");
+        String to = (String) config.get(CFG_TO);
+        String subjectRaw = (String) config.get(CFG_SUBJECT);
+        String bodyRaw = (String) config.get(CFG_BODY);
 
         // Basic validation
         if (to == null || to.isEmpty()) {
-            throw new IllegalArgumentException("Email 'to' address is required");
+            throw new IllegalArgumentException("Email '" + CFG_TO + "' address is required");
         }
 
         try {
@@ -57,7 +58,7 @@ public class EmailNotificationExecutor implements NodeExecutor {
             mailSender.send(message);
             log.info("Email sent successfully to: {}", to);
 
-            return NodeExecutionResult.success(node.getId(), Map.of("status", "sent", "to", to));
+            return NodeExecutionResult.success(node.getId(), Map.of(KEY_STATUS, "sent", CFG_TO, to));
         } catch (Exception e) {
             log.error("Failed to send email", e);
             throw new RuntimeException("Failed to send email: " + e.getMessage());
@@ -67,8 +68,8 @@ public class EmailNotificationExecutor implements NodeExecutor {
     @Override
     public Map<String, Object> getDefaultConfig() {
         return Map.of(
-                "to", "lihkinnegi@gmail.com",
-                "subject", "Workflow Alert",
-                "body", "Hello from Workflow Engine!");
+                CFG_TO, "lihkinnegi@gmail.com",
+                CFG_SUBJECT, "Workflow Alert",
+                CFG_BODY, "Hello from Workflow Engine!");
     }
 }

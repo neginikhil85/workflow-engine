@@ -1,9 +1,9 @@
 package com.learning.workflow.controller;
 
+import com.learning.workflow.dto.ApiResponse;
 import com.learning.workflow.service.KafkaAdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -23,60 +23,34 @@ public class KafkaController {
 
     /**
      * Test connection to Kafka cluster.
-     * 
-     * Request body:
-     * {
-     * "bootstrapServers": "localhost:9092",
-     * "securityProtocol": "PLAINTEXT",
-     * // Optional SSL/SASL configs
-     * }
      */
     @PostMapping("/test-connection")
-    public ResponseEntity<Map<String, Object>> testConnection(@RequestBody Map<String, Object> config) {
+    public ApiResponse<Map<String, Object>> testConnection(@RequestBody Map<String, Object> config) {
         log.info("Testing Kafka connection to: {}", config.get("bootstrapServers"));
         Map<String, Object> result = kafkaAdminService.testConnection(config);
 
         if (Boolean.TRUE.equals(result.get("success"))) {
-            return ResponseEntity.ok(result);
+            return ApiResponse.success(result, "Connection successful");
         } else {
-            return ResponseEntity.badRequest().body(result);
+            return ApiResponse.error((String) result.get("error"));
         }
     }
 
     /**
      * List all topics in Kafka cluster.
-     * 
-     * Request body: same config as test-connection
      */
     @PostMapping("/topics")
-    public ResponseEntity<Map<String, Object>> listTopics(@RequestBody Map<String, Object> config) {
+    public ApiResponse<Set<String>> listTopics(@RequestBody Map<String, Object> config) {
         log.info("Listing Kafka topics from: {}", config.get("bootstrapServers"));
-        try {
-            Set<String> topics = kafkaAdminService.listTopics(config);
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "topics", topics));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "error", e.getMessage()));
-        }
+        Set<String> topics = kafkaAdminService.listTopics(config);
+        return ApiResponse.success(topics);
     }
 
     /**
      * Create a new topic in Kafka cluster.
-     * 
-     * Request body:
-     * {
-     * "bootstrapServers": "localhost:9092",
-     * "securityProtocol": "PLAINTEXT",
-     * "topicName": "my-new-topic",
-     * "partitions": 3,
-     * "replicationFactor": 1
-     * }
      */
     @PostMapping("/topics/create")
-    public ResponseEntity<Map<String, Object>> createTopic(@RequestBody Map<String, Object> request) {
+    public ApiResponse<Map<String, Object>> createTopic(@RequestBody Map<String, Object> request) {
         String topicName = (String) request.get("topicName");
         int partitions = request.containsKey("partitions")
                 ? ((Number) request.get("partitions")).intValue()
@@ -86,13 +60,12 @@ public class KafkaController {
                 : 1;
 
         log.info("Creating Kafka topic: {} with {} partitions", topicName, partitions);
-
         Map<String, Object> result = kafkaAdminService.createTopic(request, topicName, partitions, replicationFactor);
 
         if (Boolean.TRUE.equals(result.get("success"))) {
-            return ResponseEntity.ok(result);
+            return ApiResponse.success(result, "Topic created successfully");
         } else {
-            return ResponseEntity.badRequest().body(result);
+            return ApiResponse.error((String) result.get("error"));
         }
     }
 }

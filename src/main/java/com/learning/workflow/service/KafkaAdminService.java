@@ -16,6 +16,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static com.learning.workflow.constant.WorkflowConstants.KAFKA_TIMEOUT_SECONDS;
+import static com.learning.workflow.constant.WorkflowConstants.KAFKA_CACHE_TTL_MS;
+
 /**
  * Service for Kafka admin operations: test connection, list/create topics.
  * Uses a connection cache to reuse AdminClient instances for the same
@@ -25,13 +28,8 @@ import java.util.concurrent.TimeoutException;
 @Slf4j
 public class KafkaAdminService {
 
-    private static final int TIMEOUT_SECONDS = 10;
-
     // Cache AdminClient instances by config hash to avoid recreating connections
     private final Map<String, CachedAdminClient> adminClientCache = new ConcurrentHashMap<>();
-
-    // Cache TTL in milliseconds (5 minutes)
-    private static final long CACHE_TTL_MS = 5 * 60 * 1000;
 
     /**
      * Get or create AdminClient for the given configuration.
@@ -86,8 +84,8 @@ public class KafkaAdminService {
 
         props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(AdminClientConfig.SECURITY_PROTOCOL_CONFIG, securityProtocol);
-        props.put(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, TIMEOUT_SECONDS * 1000);
-        props.put(AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG, TIMEOUT_SECONDS * 1000);
+        props.put(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, KAFKA_TIMEOUT_SECONDS * 1000);
+        props.put(AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG, KAFKA_TIMEOUT_SECONDS * 1000);
 
         // Unique client ID to distinguish in logs
         props.put(AdminClientConfig.CLIENT_ID_CONFIG, "workflow-admin-" + bootstrapServers.hashCode());
@@ -133,8 +131,8 @@ public class KafkaAdminService {
             AdminClient adminClient = getOrCreateAdminClient(config);
             DescribeClusterResult cluster = adminClient.describeCluster();
 
-            String clusterId = cluster.clusterId().get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            Collection<Node> nodes = cluster.nodes().get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            String clusterId = cluster.clusterId().get(KAFKA_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            Collection<Node> nodes = cluster.nodes().get(KAFKA_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             List<String> brokers = nodes.stream()
                     .map(node -> node.host() + ":" + node.port())
@@ -166,7 +164,7 @@ public class KafkaAdminService {
         try {
             AdminClient adminClient = getOrCreateAdminClient(config);
             ListTopicsResult topicsResult = adminClient.listTopics();
-            Set<String> topics = topicsResult.names().get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            Set<String> topics = topicsResult.names().get(KAFKA_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             log.debug("Listed {} topics from Kafka", topics.size());
             return topics;
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
@@ -188,7 +186,7 @@ public class KafkaAdminService {
             NewTopic newTopic = new NewTopic(topicName, partitions, replicationFactor);
             adminClient.createTopics(Collections.singleton(newTopic))
                     .all()
-                    .get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                    .get(KAFKA_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             result.put("success", true);
             result.put("topicName", topicName);
@@ -250,7 +248,7 @@ public class KafkaAdminService {
         }
 
         boolean isExpired() {
-            return System.currentTimeMillis() - createdAt > CACHE_TTL_MS;
+            return System.currentTimeMillis() - createdAt > KAFKA_CACHE_TTL_MS;
         }
     }
 }

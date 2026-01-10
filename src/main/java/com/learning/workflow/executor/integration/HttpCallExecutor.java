@@ -6,29 +6,30 @@ import com.learning.workflow.model.core.NodeDefinition;
 import com.learning.workflow.model.core.NodeExecutionResult;
 import com.learning.workflow.model.nodetype.IntegrationNodeType;
 import com.learning.workflow.model.nodetype.NodeType;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
+import static com.learning.workflow.constant.WorkflowConstants.*;
+
 /**
- * HTTP Call node executor using native Java HttpClient.
+ * HTTP Call node executor using Spring RestClient.
+ * Provides fluent API, automatic JSON binding, and clean error handling.
  */
 @Component
+@Slf4j
 public class HttpCallExecutor implements NodeExecutor {
 
-    private final HttpClient httpClient;
+    private final RestClient restClient;
 
-    public HttpCallExecutor() {
-        this.httpClient = HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_2)
-                .connectTimeout(Duration.ofSeconds(10))
-                .followRedirects(HttpClient.Redirect.NORMAL)
+    public HttpCallExecutor(RestClient.Builder restClientBuilder) {
+        this.restClient = restClientBuilder
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
 
@@ -38,70 +39,84 @@ public class HttpCallExecutor implements NodeExecutor {
     }
 
     @Override
-    public NodeExecutionResult execute(NodeDefinition node, Object input, ExecutionContext ctx) {
+    public void validate(NodeDefinition node) {
         Map<String, Object> config = node.getConfig();
-        if (config == null || !config.containsKey("url")) {
-            throw new IllegalArgumentException("HTTP Call required configuration missing: url");
+        if (config == null || !config.containsKey(CFG_URL)) {
+            throw new IllegalArgumentException("HTTP Call required configuration missing: " + CFG_URL);
         }
+    }
 
-        String url = (String) config.get("url");
-        String method = (String) config.getOrDefault("method", "GET").toString().toUpperCase();
-        String body = (String) config.getOrDefault("body", "");
+    @Override
+    public NodeExecutionResult execute(NodeDefinition node, Object input, ExecutionContext ctx) {
+        validate(node);
 
-        // Build Request
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().uri(URI.create(url));
+        Map<String, Object> config = node.getConfig();
+        String url = (String) config.get(CFG_URL);
+        String method = config.getOrDefault(CFG_METHOD, "GET").toString().toUpperCase();
+        String body = (String) config.getOrDefault(CFG_BODY, "");
 
-        // Method & Body
-        if ("POST".equals(method)) {
-            requestBuilder.POST(HttpRequest.BodyPublishers.ofString(body));
-        } else if ("PUT".equals(method)) {
-            requestBuilder.PUT(HttpRequest.BodyPublishers.ofString(body));
-        } else if ("DELETE".equals(method)) {
-            requestBuilder.DELETE();
-        } else {
-            requestBuilder.GET();
-        }
+        log.info("Executing HTTP {} to {}", method, url);
 
-        // Headers
-        if (config.containsKey("headers") && config.get("headers") instanceof List) {
-            try {
-                @SuppressWarnings("unchecked")
-                List<Map<String, String>> headerList = (List<Map<String, String>>) config.get("headers");
-                for (Map<String, String> h : headerList) {
-                    if (h.containsKey("key") && h.containsKey("value") && !h.get("key").isBlank()) {
-                        requestBuilder.header(h.get("key"), h.get("value"));
-                    }
-                }
-            } catch (Exception e) {
-                System.err.println("Error parsing headers: " + e.getMessage());
-            }
-        }
-
-        // Auto-add Content-Type: application/json if missing and body exists
-        boolean hasContentType = node.getConfig() != null && node.getConfig().containsKey("headers") &&
-                ((List<Map<String, String>>) node.getConfig().get("headers")).stream()
-                        .anyMatch(h -> "Content-Type".equalsIgnoreCase(h.get("key")));
-
-        if (!hasContentType && (body != null && !body.isBlank())) {
-            requestBuilder.header("Content-Type", "application/json");
-        }
-
-        // Execute
-        System.out.println("Executing HTTP " + method + " to " + url);
         try {
-            HttpResponse<String> response = httpClient.send(requestBuilder.build(),
-                    HttpResponse.BodyHandlers.ofString());
+            String response = executeRequest(url, method, body, config);
 
             return NodeExecutionResult.success(node.getId(), Map.of(
-                    "status", response.statusCode(),
-                    "response", response.body(),
-                    "headers", response.headers().map(),
-                    "method", method));
+                    KEY_STATUS, 200,
+                    "response", response != null ? response : "",
+                    CFG_METHOD, method));
 
         } catch (Exception e) {
+            log.error("HTTP request failed: {}", e.getMessage());
             return NodeExecutionResult.success(node.getId(), Map.of(
-                    "status", 500,
-                    "error", e.getMessage()));
+                    KEY_STATUS, 500,
+                    KEY_ERROR, e.getMessage(),
+                    CFG_METHOD, method));
+        }
+    }
+
+    private String executeRequest(String url, String method, String body, Map<String, Object> config) {
+        return switch (method) {
+            case "POST" -> restClient.post()
+                    .uri(url)
+                    .headers(h -> applyHeaders(h, config))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .body(String.class);
+
+            case "PUT" -> restClient.put()
+                    .uri(url)
+                    .headers(h -> applyHeaders(h, config))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .body(String.class);
+
+            case "DELETE" -> restClient.delete()
+                    .uri(url)
+                    .headers(h -> applyHeaders(h, config))
+                    .retrieve()
+                    .body(String.class);
+
+            default -> restClient.get()
+                    .uri(url)
+                    .headers(h -> applyHeaders(h, config))
+                    .retrieve()
+                    .body(String.class);
+        };
+    }
+
+    @SuppressWarnings("unchecked")
+    private void applyHeaders(HttpHeaders headers, Map<String, Object> config) {
+        if (config.containsKey(CFG_HEADERS) && config.get(CFG_HEADERS) instanceof List) {
+            List<Map<String, String>> headerList = (List<Map<String, String>>) config.get(CFG_HEADERS);
+            for (Map<String, String> h : headerList) {
+                String key = h.get(CFG_KEY);
+                String value = h.get(CFG_VALUE);
+                if (key != null && !key.isBlank() && value != null) {
+                    headers.add(key, value);
+                }
+            }
         }
     }
 }

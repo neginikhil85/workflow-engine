@@ -1,8 +1,8 @@
 package com.learning.workflow.controller;
 
 import com.learning.workflow.core.adapter.IntegrationAdapterRegistry;
-
 import com.learning.workflow.core.adapter.MessagingAdapter;
+import com.learning.workflow.dto.ApiResponse;
 import com.learning.workflow.engine.NodeTypeRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,12 +26,7 @@ public class NodeTypeController {
     private final IntegrationAdapterRegistry adapterRegistry;
 
     @GetMapping("/types")
-    public Map<String, Object> getNodeTypes() {
-        Map<String, Object> response = new HashMap<>();
-
-        // Get all node executors with their metadata
-        // Registry now returns Map<String, NodeExecutor>
-        // We can iterate over values since Executor holds the NodeType info
+    public ApiResponse<Map<String, Map<String, Object>>> getNodeTypes() {
         Map<String, Map<String, Object>> nodeTypes = nodeTypeRegistry.getAll().values().stream()
                 .collect(Collectors.toMap(
                         executor -> executor.getSupportedNodeType().getName(),
@@ -45,13 +40,11 @@ public class NodeTypeController {
                             return metadata;
                         }));
 
-        response.put("nodeTypes", nodeTypes);
-        return response;
+        return ApiResponse.success(nodeTypes);
     }
 
     @GetMapping("/adapters")
-    public Map<String, Object> getAdapters() {
-        Map<String, Object> response = new HashMap<>();
+    public ApiResponse<Map<String, Object>> getAdapters() {
         Map<String, Object> adapters = new HashMap<>();
 
         adapterRegistry.getAllAdapters().forEach((id, adapter) -> {
@@ -62,7 +55,6 @@ public class NodeTypeController {
             adapters.put(id, adapterInfo);
         });
 
-        response.put("adapters", adapters);
-        return response;
+        return ApiResponse.success(adapters);
     }
 }

@@ -3,6 +3,7 @@ package com.learning.workflow.model.core;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.time.LocalDateTime;
 
@@ -17,8 +18,17 @@ public class WorkflowExecution {
     @Id
     private String id;
 
+    @Indexed
     private String workflowId;
-    private String status; // RUNNING, COMPLETED, FAILED
+
+    /**
+     * Links this execution to its parent WorkflowRun (session).
+     * All executions from the same "Run" click share the same runId.
+     */
+    @Indexed
+    private String runId;
+
+    private ExecutionStatus status;
     private LocalDateTime startedAt;
     private LocalDateTime completedAt;
     private Object result;

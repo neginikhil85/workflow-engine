@@ -1,9 +1,7 @@
 package com.learning.workflow.engine;
 
-import com.learning.workflow.model.core.Edge;
-import com.learning.workflow.model.core.NodeDefinition;
-import com.learning.workflow.model.core.WorkflowDefinition;
-import com.learning.workflow.model.core.ExecutionContext;
+import com.learning.workflow.model.core.*;
+
 import java.util.*;
 
 import org.springframework.stereotype.Component;
@@ -21,12 +19,19 @@ public class WorkflowEngine {
     }
 
     public WorkflowRunResult run(WorkflowDefinition workflow, Object initialInput) {
+        return run(workflow, initialInput, null);
+    }
+
+    public WorkflowRunResult run(WorkflowDefinition workflow, Object initialInput, String runId) {
         Map<String, NodeDefinition> nodeMap = mapNodes(workflow.getNodes());
         Map<String, List<Edge>> graph = mapEdges(workflow.getEdges());
 
         ExecutionContext ctx = new ExecutionContext();
         ctx.put("workflowId", workflow.getId());
         ctx.put("workflowName", workflow.getName());
+        if (runId != null) {
+            ctx.put("runId", runId);
+        }
 
         Queue<ExecutionItem> queue = new LinkedList<>();
         if (workflow.getStartNodeId() != null) {
@@ -56,7 +61,7 @@ public class WorkflowEngine {
             executedNodeIds.add(currentId);
             ctx.put("currentNodeId", currentId);
 
-            com.learning.workflow.model.core.NodeExecutionResult result;
+            NodeExecutionResult result;
             try {
                 // Execute Node
                 result = executeNode(node, input, ctx);
@@ -67,7 +72,7 @@ public class WorkflowEngine {
                 throw new RuntimeException("Error executing node " + currentId + ": " + e.getMessage(), e);
             }
 
-            if (result.getStatus() == com.learning.workflow.model.core.NodeExecutionResult.Status.SUCCESS) {
+            if (result.getStatus() == NodeExecutionResult.Status.SUCCESS) {
                 lastOutput = result.getOutputData();
 
                 List<String> nextNodes = result.getNextNodes();
@@ -101,8 +106,8 @@ public class WorkflowEngine {
         return graph;
     }
 
-    private com.learning.workflow.model.core.NodeExecutionResult executeNode(NodeDefinition node, Object input,
-            ExecutionContext ctx) {
+    private NodeExecutionResult executeNode(NodeDefinition node, Object input,
+                                            ExecutionContext ctx) {
         var executor = registry.resolve(node.getNodeType());
         executor.validate(node);
         return executor.execute(node, input, ctx);

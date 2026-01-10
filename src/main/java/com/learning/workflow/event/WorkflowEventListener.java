@@ -15,9 +15,9 @@ public class WorkflowEventListener {
 
     @EventListener
     public void handleScheduledEvent(WorkflowScheduledEvent event) {
-        log.info("Received scheduled event for workflow: {}", event.getWorkflowId());
+        log.info("Received scheduled event for workflow: {} with runId: {}", event.getWorkflowId(), event.getRunId());
         try {
-            workflowService.executeWorkflow(event.getWorkflowId(), null);
+            workflowService.executeWorkflowWithRun(event.getWorkflowId(), null, event.getRunId());
         } catch (Exception e) {
             log.error("Failed to execute scheduled workflow: {}", event.getWorkflowId(), e);
         }

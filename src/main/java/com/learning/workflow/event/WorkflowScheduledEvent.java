@@ -6,9 +6,11 @@ import org.springframework.context.ApplicationEvent;
 @Getter
 public class WorkflowScheduledEvent extends ApplicationEvent {
     private final String workflowId;
+    private final String runId;
 
-    public WorkflowScheduledEvent(Object source, String workflowId) {
+    public WorkflowScheduledEvent(Object source, String workflowId, String runId) {
         super(source);
         this.workflowId = workflowId;
+        this.runId = runId;
     }
 }

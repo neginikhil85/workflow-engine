@@ -1,5 +1,6 @@
 package com.learning.workflow.service;
 
+import com.learning.workflow.constant.WorkflowConstants;
 import com.learning.workflow.event.WorkflowScheduledEvent;
 import com.learning.workflow.model.core.NodeDefinition;
 import com.learning.workflow.model.core.WorkflowDefinition;
@@ -47,12 +48,13 @@ public class WorkflowScheduler {
             if ("TriggerNodeType_CRON".equals(node.getNodeType()) ||
                     TriggerNodeType.CRON.name().equals(node.getNodeType())) {
 
-                String cronExpression = (String) node.getConfig().get("cron");
+                String cronExpression = (String) node.getConfig().get(WorkflowConstants.CFG_CRON);
                 log.info("Found CRON node for workflow {} with expression: {}", workflowId, cronExpression);
 
                 if (cronExpression != null && !cronExpression.isBlank()) {
                     try {
-                        scheduleCronTask(workflowId, cronExpression);
+                        // Note: runId is null here for legacy scheduling (e.g., on startup)
+                        scheduleCronTask(workflowId, cronExpression, null);
                         log.info("Successfully scheduled workflow {} with cron {}", workflowId, cronExpression);
                     } catch (Exception e) {
                         log.error("Failed to schedule workflow {}", workflowId, e);
@@ -72,10 +74,16 @@ public class WorkflowScheduler {
         }
     }
 
-    public void scheduleCronTask(String workflowId, String cronExpression) {
+    public void scheduleCronTask(String workflowId, String cronExpression, String runId) {
+        // Critical: Cancel existing task to prevent duplicates/orphan threads
+        if (scheduledTasks.containsKey(workflowId)) {
+            log.warn("Workflow {} is already scheduled. Cancelling previous task before rescheduling.", workflowId);
+            unscheduleWorkflow(workflowId);
+        }
+
         Runnable task = () -> {
-            log.info("Cron Trigger Fired for workflow: {}", workflowId);
-            eventPublisher.publishEvent(new WorkflowScheduledEvent(this, workflowId));
+            log.info("Cron Trigger Fired for workflow: {} with runId: {}", workflowId, runId);
+            eventPublisher.publishEvent(new WorkflowScheduledEvent(this, workflowId, runId));
         };
 
         ScheduledFuture<?> future = taskScheduler.schedule(task, new CronTrigger(cronExpression));
