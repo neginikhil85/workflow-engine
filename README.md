@@ -10,7 +10,9 @@ A flexible, extensible workflow automation engine built with Spring Boot, MongoD
 ✅ **RESTful API** - Complete REST API for workflow management
 ✅ **MongoDB Persistence** - Workflows and execution history stored in MongoDB
 ✅ **Conditional Routing** - SpEL-based conditional edges for dynamic workflow paths
+✅ **Deep Observability** - Granular node-level execution tracking (inputs, outputs, timing)
 ✅ **Beautiful UI** - Modern drag-and-drop workflow builder interface
+✅ **Clean Architecture** - Standardized Service Layer, Custom Exceptions, and Domain-Driven Design
 
 ## Architecture
 
@@ -64,7 +66,10 @@ http://localhost:8080/builder
 - `PUT /api/workflows/{id}` - Update workflow
 - `DELETE /api/workflows/{id}` - Delete workflow
 - `POST /api/workflows/{id}/execute` - Execute workflow
-- `GET /api/workflows/{id}/executions` - Get execution history
+- `POST /api/workflows/{id}/stop` - Stop execution
+- `GET /api/workflows/{id}/runs` - Get workflow runs
+- `GET /api/workflows/runs/{runId}/executions` - Get execution details
+- `GET /api/workflows/runs/{runId}/nodes` - Get granular node execution results (Observability)
 
 ### Node Types
 - `GET /api/nodes/types` - Get available node types
