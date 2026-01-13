@@ -47,9 +47,9 @@ public class KafkaConsumerService {
                 ? ((Number) config.get(CFG_POLL_TIMEOUT_MS)).intValue()
                 : 5000;
 
-        Properties props = propertiesBuilder.buildConsumerProperties(config, consumerGroup);
+        Properties properties = propertiesBuilder.buildConsumerProperties(config, consumerGroup);
 
-        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
+        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties)) {
             consumer.subscribe(Collections.singletonList(topic));
 
             log.info("Polling Kafka topic: {} for {} ms", topic, pollTimeout);

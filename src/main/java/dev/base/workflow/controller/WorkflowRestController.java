@@ -3,6 +3,7 @@ package dev.base.workflow.controller;
 import dev.base.workflow.model.dto.ApiResponse;
 import dev.base.workflow.mongo.collection.WorkflowDefinition;
 import dev.base.workflow.mongo.collection.WorkflowExecution;
+import dev.base.workflow.mongo.collection.NodeExecutionResult;
 import dev.base.workflow.mongo.collection.WorkflowRun;
 import dev.base.workflow.service.WorkflowService;
 import lombok.RequiredArgsConstructor;
@@ -51,9 +52,9 @@ public class WorkflowRestController {
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteWorkflow(@PathVariable String id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteWorkflow(@PathVariable String id) {
         workflowService.deleteWorkflow(id);
-        return ApiResponse.success(MSG_WORKFLOW_DELETED);
     }
 
     @PostMapping("/{id}/execute")
@@ -76,6 +77,11 @@ public class WorkflowRestController {
     @GetMapping("/runs/{runId}/executions")
     public ApiResponse<List<WorkflowExecution>> getExecutionsForRun(@PathVariable String runId) {
         return ApiResponse.success(workflowService.getExecutionsForRun(runId));
+    }
+
+    @GetMapping("/runs/{runId}/nodes")
+    public ApiResponse<List<NodeExecutionResult>> getNodeExecutionResults(@PathVariable String runId) {
+        return ApiResponse.success(workflowService.getNodeExecutionResults(runId));
     }
 
     @PostMapping("/{id}/stop")

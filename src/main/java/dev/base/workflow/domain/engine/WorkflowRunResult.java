@@ -12,4 +12,5 @@ import java.util.List;
 public class WorkflowRunResult {
     private Object output;
     private List<String> executedNodeIds;
+    private List<dev.base.workflow.mongo.collection.NodeExecutionResult> nodeResults;
 }

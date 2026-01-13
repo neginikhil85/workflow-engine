@@ -9,9 +9,12 @@ import dev.base.workflow.mongo.collection.WorkflowRun;
 import dev.base.workflow.mongo.repository.WorkflowDefinitionRepository;
 import dev.base.workflow.mongo.repository.WorkflowExecutionRepository;
 import dev.base.workflow.mongo.repository.WorkflowRunRepository;
+import dev.base.workflow.mongo.repository.NodeExecutionResultRepository;
+import dev.base.workflow.mongo.collection.NodeExecutionResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,6 +39,7 @@ public class WorkflowExecutionService {
     private final WorkflowDefinitionRepository workflowRepository;
     private final WorkflowExecutionRepository executionRepository;
     private final WorkflowRunRepository runRepository;
+    private final NodeExecutionResultRepository nodeResultRepository;
     private final WorkflowScheduler workflowScheduler;
 
     // Track running workflow threads for cancellation
@@ -51,6 +55,7 @@ public class WorkflowExecutionService {
     /**
      * Execute a workflow within an existing Run (used by Cron/Kafka ticks)
      */
+    @Transactional
     public Object executeWorkflowWithRun(String workflowId, Object input, String runId) {
         return executeWorkflow(workflowId, input, runId, null);
     }
@@ -132,6 +137,13 @@ public class WorkflowExecutionService {
         execution.setResult(result.getOutput());
         execution.setExecutedNodes(result.getExecutedNodeIds());
         executionRepository.save(execution);
+
+        // Save detailed node execution results
+        if (result.getNodeResults() != null) {
+            List<NodeExecutionResult> nodeResults = result.getNodeResults();
+            nodeResults.forEach(resultItem -> resultItem.setExecutionId(execution.getId()));
+            nodeResultRepository.saveAll(nodeResults);
+        }
     }
 
     private void failExecution(WorkflowExecution execution, Exception e) {
@@ -176,18 +188,18 @@ public class WorkflowExecutionService {
     }
 
     private void cancelRunningExecutions(String workflowId) {
-        List<WorkflowExecution> runningExecs = executionRepository.findByWorkflowIdAndStatus(workflowId,
+        List<WorkflowExecution> runningExecutionsList = executionRepository.findByWorkflowIdAndStatus(workflowId,
                 ExecutionStatus.RUNNING);
-        for (WorkflowExecution exec : runningExecs) {
-            Thread thread = runningExecutions.get(exec.getId());
+        for (WorkflowExecution execution : runningExecutionsList) {
+            Thread thread = runningExecutions.get(execution.getId());
             if (thread != null) {
-                log.info(LOG_INTERRUPTING_THREAD, exec.getId());
+                log.info(LOG_INTERRUPTING_THREAD, execution.getId());
                 thread.interrupt();
             }
-            exec.setStatus(ExecutionStatus.CANCELLED);
-            exec.setCompletedAt(LocalDateTime.now());
-            exec.setError(ERR_STOPPED_BY_USER);
-            executionRepository.save(exec);
+            execution.setStatus(ExecutionStatus.CANCELLED);
+            execution.setCompletedAt(LocalDateTime.now());
+            execution.setError(ERR_STOPPED_BY_USER);
+            executionRepository.save(execution);
         }
     }
 }

@@ -6,7 +6,6 @@ import dev.base.workflow.mongo.collection.WorkflowDefinition;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
 import static dev.base.workflow.constant.WorkflowConstants.CFG_NODE_TYPE;
 
 /**
@@ -22,19 +21,20 @@ public class WorkflowDefinitionMapper {
      */
     public WorkflowDefinition mapFromJsonFormat(WorkflowDefinition workflow) {
         if (workflow.getNodes() != null) {
-            for (NodeDefinition node : workflow.getNodes()) {
-                // If nodeType is stored as string (from JSON), convert to enum
-                if (node.getNodeType() == null && node.getConfig() != null) {
-                    Object nodeTypeObj = node.getConfig().get(CFG_NODE_TYPE);
-                    if (nodeTypeObj instanceof String) {
-                        node.setNodeType((String) nodeTypeObj);
-                        // Remove from config as it's now a proper field
-                        Map<String, Object> config = node.getConfig();
-                        config.remove(CFG_NODE_TYPE);
-                    }
-                }
-            }
+            workflow.getNodes().forEach(this::processNodeConfiguration);
         }
         return workflow;
+    }
+
+    private void processNodeConfiguration(NodeDefinition node) {
+        if (node.getNodeType() != null || node.getConfig() == null) {
+            return;
+        }
+
+        Object nodeTypeObj = node.getConfig().get(CFG_NODE_TYPE);
+        if (nodeTypeObj instanceof String) {
+            node.setNodeType((String) nodeTypeObj);
+            node.getConfig().remove(CFG_NODE_TYPE);
+        }
     }
 }

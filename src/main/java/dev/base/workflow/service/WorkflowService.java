@@ -4,6 +4,7 @@ import dev.base.workflow.model.core.ExecutionStatus;
 import dev.base.workflow.mongo.collection.WorkflowDefinition;
 import dev.base.workflow.mongo.collection.WorkflowExecution;
 import dev.base.workflow.mongo.collection.WorkflowRun;
+import dev.base.workflow.mongo.collection.NodeExecutionResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -68,6 +69,10 @@ public class WorkflowService {
 
     public List<WorkflowExecution> getExecutionsForRun(String runId) {
         return queryService.getExecutionsForRun(runId);
+    }
+
+    public List<NodeExecutionResult> getNodeExecutionResults(String runId) {
+        return queryService.getNodeExecutionResults(runId);
     }
 
     public boolean isWorkflowRunning(String workflowId) {

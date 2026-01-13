@@ -5,6 +5,8 @@ import dev.base.workflow.mongo.collection.WorkflowExecution;
 import dev.base.workflow.mongo.collection.WorkflowRun;
 import dev.base.workflow.mongo.repository.WorkflowExecutionRepository;
 import dev.base.workflow.mongo.repository.WorkflowRunRepository;
+import dev.base.workflow.mongo.repository.NodeExecutionResultRepository;
+import dev.base.workflow.mongo.collection.NodeExecutionResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ public class WorkflowQueryService {
 
     private final WorkflowExecutionRepository executionRepository;
     private final WorkflowRunRepository runRepository;
+    private final NodeExecutionResultRepository nodeResultRepository;
     private final WorkflowScheduler workflowScheduler;
 
     /**
@@ -77,5 +80,12 @@ public class WorkflowQueryService {
      */
     public List<WorkflowExecution> getExecutionsForRun(String runId) {
         return executionRepository.findByRunIdOrderByStartedAtDesc(runId);
+    }
+
+    /**
+     * Get node execution results for a run
+     */
+    public List<NodeExecutionResult> getNodeExecutionResults(String runId) {
+        return nodeResultRepository.findByRunId(runId);
     }
 }

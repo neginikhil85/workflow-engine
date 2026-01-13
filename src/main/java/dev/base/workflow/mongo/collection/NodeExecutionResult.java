@@ -3,6 +3,8 @@ package dev.base.workflow.mongo.collection;
 import lombok.Data;
 
 import java.util.List;
+import java.time.LocalDateTime;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -12,11 +14,24 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class NodeExecutionResult {
     @Id
     private String id;
+
+    @Indexed
+    private String runId;
+
+    @Indexed
+    private String executionId;
+
     private String nodeId;
     private Status status;
+    private Object inputData;
     private Object outputData;
+
     private List<String> nextNodes;
     private String errorMessage;
+
+    private LocalDateTime startedAt;
+    private LocalDateTime completedAt;
+    private long duration;
 
     public enum Status {
         SUCCESS,

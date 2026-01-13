@@ -45,26 +45,34 @@ public class WorkflowScheduler {
         }
 
         for (NodeDefinition node : nodes) {
-
-            if (NODE_TYPE_TRIGGER_CRON.equals(node.getNodeType()) ||
-                    TriggerNodeType.CRON.name().equals(node.getNodeType())) {
-
-                String cronExpression = (String) node.getConfig().get(WorkflowConstants.CFG_CRON);
-                log.info("Found CRON node for workflow {} with expression: {}", workflowId, cronExpression);
-
-                if (cronExpression != null && !cronExpression.isBlank()) {
-                    try {
-                        // Note: runId is null here for legacy scheduling (e.g., on startup)
-                        scheduleCronTask(workflowId, cronExpression, null);
-                        log.info("Successfully scheduled workflow {} with cron {}", workflowId, cronExpression);
-                    } catch (Exception e) {
-                        log.error("Failed to schedule workflow {}", workflowId, e);
-                    }
-                } else {
-                    log.warn("Cron expression is missing or blank for node {}", node.getId());
-                }
-            }
+            scheduleCronNode(node, workflowId);
         }
+    }
+
+    private void scheduleCronNode(NodeDefinition node, String workflowId) {
+        if (!isCronNode(node)) {
+            return;
+        }
+
+        String cronExpression = (String) node.getConfig().get(WorkflowConstants.CFG_CRON);
+        log.info("Found CRON node for workflow {} with expression: {}", workflowId, cronExpression);
+
+        if (cronExpression != null && !cronExpression.isBlank()) {
+            try {
+                // Note: runId is null here for legacy scheduling (e.g., on startup)
+                scheduleCronTask(workflowId, cronExpression, null);
+                log.info("Successfully scheduled workflow {} with cron {}", workflowId, cronExpression);
+            } catch (Exception e) {
+                log.error("Failed to schedule workflow {}", workflowId, e);
+            }
+        } else {
+            log.warn("Cron expression is missing or blank for node {}", node.getId());
+        }
+    }
+
+    private boolean isCronNode(NodeDefinition node) {
+        return NODE_TYPE_TRIGGER_CRON.equals(node.getNodeType()) ||
+                TriggerNodeType.CRON.name().equals(node.getNodeType());
     }
 
     public void unscheduleWorkflow(String workflowId) {
