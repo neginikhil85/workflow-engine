@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import dev.base.workflow.model.node.details.HttpExecutionDetails;
 import java.util.List;
 import java.util.Map;
 
@@ -60,20 +61,46 @@ public class HttpCallExecutor implements NodeExecutor {
         log.info("Executing HTTP {} to {}", method, url);
 
         try {
-            String response = executeRequest(url, method, body, config);
+            Map<String, String> requestHeaders = extractHeaders(config);
 
-            return NodeExecutionResult.success(node.getId(), Map.of(
-                    KEY_STATUS, 200,
-                    "response", response != null ? response : "",
-                    CFG_METHOD, method));
+            String responseBody = executeRequest(url, method, body, config);
+            int statusCode = 200; // Placeholder until we improve RestClient usage to get status
+
+            return NodeExecutionResult.success(node.getId(), HttpExecutionDetails.builder()
+                    .status(statusCode)
+                    .method(method)
+                    .url(url)
+                    .requestBody(body)
+                    .requestHeaders(requestHeaders)
+                    .data(responseBody)
+                    .build());
 
         } catch (Exception e) {
-            log.error("HTTP request failed: {}", e.getMessage());
-            return NodeExecutionResult.success(node.getId(), Map.of(
-                    KEY_STATUS, 500,
-                    KEY_ERROR, e.getMessage(),
-                    CFG_METHOD, method));
+            log.error("HTTP request failed", e);
+            return NodeExecutionResult.success(node.getId(), HttpExecutionDetails.builder()
+                    .status(500)
+                    .method(method)
+                    .url(url)
+                    .requestBody(body)
+                    .requestHeaders(extractHeaders(config))
+                    .error(e.getMessage())
+                    .build());
         }
+    }
+
+    private Map<String, String> extractHeaders(Map<String, Object> config) {
+        Map<String, String> headers = new java.util.HashMap<>();
+        if (config.containsKey(CFG_HEADERS) && config.get(CFG_HEADERS) instanceof List) {
+            List<Map<String, String>> headerList = (List<Map<String, String>>) config.get(CFG_HEADERS);
+            for (Map<String, String> h : headerList) {
+                String key = h.get(CFG_KEY);
+                String value = h.get(CFG_VALUE);
+                if (key != null && !key.isBlank() && value != null) {
+                    headers.put(key, value);
+                }
+            }
+        }
+        return headers;
     }
 
     private String executeRequest(String url, String method, String body, Map<String, Object> config) {

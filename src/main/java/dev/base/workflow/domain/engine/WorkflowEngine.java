@@ -56,11 +56,11 @@ public class WorkflowEngine {
             executedNodeIds.add(node.getId());
             context.put(KEY_CURRENT_NODE_ID, node.getId());
 
-            NodeExecutionResult result = executeNodeWithMonitoring(node, item.input, context, runId);
+            NodeExecutionResult result = executeNodeWithMonitoring(node, item.executionData, context, runId);
             nodeResults.add(result);
 
             if (result.getStatus() == NodeExecutionResult.Status.SUCCESS) {
-                lastOutput = result.getOutputData();
+                lastOutput = result.getExecutionDetails();
                 processSuccess(result, node, graph, context, queue);
             } else {
                 log.warn("Node {} failed with status: {}", node.getId(), result.getStatus());
@@ -115,8 +115,6 @@ public class WorkflowEngine {
 
     private void enrichResultWithMetrics(NodeExecutionResult result, String runId, Object input, long startTime) {
         result.setRunId(runId);
-        result.setInputData(input);
-        // Approx start time based on end time and duration
         result.setDuration(System.currentTimeMillis() - startTime);
         result.setCompletedAt(java.time.LocalDateTime.now());
         result.setStartedAt(result.getCompletedAt().minusNanos(result.getDuration() * 1000000));
@@ -126,11 +124,11 @@ public class WorkflowEngine {
             ExecutionContext context, Queue<ExecutionItem> queue) {
         List<String> nextNodes = result.getNextNodes();
         if (CollectionUtils.isEmpty(nextNodes)) {
-            nextNodes = determineNextNodes(node, result.getOutputData(), graph, context);
+            nextNodes = determineNextNodes(node, result.getExecutionDetails(), graph, context);
         }
 
         for (String nextId : nextNodes) {
-            queue.add(new ExecutionItem(nextId, result.getOutputData()));
+            queue.add(new ExecutionItem(nextId, result.getExecutionDetails()));
         }
     }
 
@@ -172,11 +170,11 @@ public class WorkflowEngine {
 
     private static class ExecutionItem {
         String nodeId;
-        Object input;
+        Object executionData;
 
-        public ExecutionItem(String nodeId, Object input) {
+        public ExecutionItem(String nodeId, Object executionData) {
             this.nodeId = nodeId;
-            this.input = input;
+            this.executionData = executionData;
         }
     }
 }

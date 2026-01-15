@@ -109,6 +109,14 @@ public class WorkflowExecutionService {
             return run;
         }
 
+        // Check if there is already an active run for this workflow to prevent
+        // duplicates
+        var activeRun = runRepository.findFirstByWorkflowIdAndStatus(workflowId, WorkflowRun.RunStatus.ACTIVE);
+        if (activeRun.isPresent()) {
+            log.info("Found existing active run {} for workflow {}, reusing it.", activeRun.get().getId(), workflowId);
+            return activeRun.get();
+        }
+
         WorkflowRun run = WorkflowRun.builder()
                 .workflowId(workflowId)
                 .triggerType(triggerType)
@@ -175,13 +183,19 @@ public class WorkflowExecutionService {
 
         workflowScheduler.unscheduleWorkflow(workflowId);
 
-        runRepository.findByWorkflowIdAndStatus(workflowId, WorkflowRun.RunStatus.ACTIVE)
-                .ifPresent(run -> {
-                    run.setStatus(WorkflowRun.RunStatus.STOPPED);
-                    run.setEndTime(LocalDateTime.now());
-                    runRepository.save(run);
-                    log.info(LOG_STOPPED_RUN, run.getId());
-                });
+        List<WorkflowRun> activeRuns = runRepository.findAllByWorkflowIdAndStatus(workflowId,
+                WorkflowRun.RunStatus.ACTIVE);
+
+        if (activeRuns.isEmpty()) {
+            log.info("No active runs found to stop for workflow {}", workflowId);
+        }
+
+        for (WorkflowRun run : activeRuns) {
+            run.setStatus(WorkflowRun.RunStatus.STOPPED);
+            run.setEndTime(LocalDateTime.now());
+            runRepository.save(run);
+            log.info(LOG_STOPPED_RUN, run.getId());
+        }
 
         cancelRunningExecutions(workflowId);
         log.info(LOG_WORKFLOW_STOPPED, workflowId);

@@ -8,6 +8,9 @@ import dev.base.workflow.model.nodetype.NodeType;
 import dev.base.workflow.model.nodetype.NotificationNodeType;
 import dev.base.workflow.util.StringUtils;
 import org.springframework.stereotype.Component;
+import java.time.LocalDateTime;
+
+import dev.base.workflow.model.node.details.ConsoleExecutionDetails;
 
 @Component
 public class ConsoleNotificationExecutor implements NodeExecutor {
@@ -26,6 +29,11 @@ public class ConsoleNotificationExecutor implements NodeExecutor {
 
         System.out.println(StringUtils.concat("[CONSOLE NODE]: ", message));
 
-        return NodeExecutionResult.success(node.getId(), input);
+        return NodeExecutionResult.success(node.getId(),
+                ConsoleExecutionDetails.builder()
+                        .message(message)
+                        .level("INFO")
+                        .timestamp(LocalDateTime.now())
+                        .build());
     }
 }

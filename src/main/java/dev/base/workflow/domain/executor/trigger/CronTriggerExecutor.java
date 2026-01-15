@@ -8,6 +8,7 @@ import dev.base.workflow.model.nodetype.NodeType;
 import dev.base.workflow.model.nodetype.TriggerNodeType;
 import org.springframework.stereotype.Component;
 
+import dev.base.workflow.model.node.details.CronExecutionDetails;
 import java.util.Map;
 
 import static dev.base.workflow.constant.WorkflowConstants.*;
@@ -40,8 +41,9 @@ public class CronTriggerExecutor implements NodeExecutor {
             log.warn("Skipping scheduling: workflowId={} cronExpression={}", workflowId, cronExpression);
         }
 
-        return NodeExecutionResult.success(node.getId(), Map.of(
-                "trigger", CFG_CRON,
-                "expression", cronExpression != null ? cronExpression : "unknown"));
+        return NodeExecutionResult.success(node.getId(), CronExecutionDetails.builder()
+                .expression(cronExpression != null ? cronExpression : "unknown")
+                .triggeredAt(java.time.LocalDateTime.now())
+                .build());
     }
 }

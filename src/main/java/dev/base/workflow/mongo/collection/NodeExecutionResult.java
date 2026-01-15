@@ -23,8 +23,7 @@ public class NodeExecutionResult {
 
     private String nodeId;
     private Status status;
-    private Object inputData;
-    private Object outputData;
+    private Object executionDetails;
 
     private List<String> nextNodes;
     private String errorMessage;
@@ -40,20 +39,21 @@ public class NodeExecutionResult {
     }
 
     // Helper method for success
-    public static NodeExecutionResult success(String nodeId, Object outputData) {
+    public static NodeExecutionResult success(String nodeId, Object executionDetails) {
         NodeExecutionResult result = new NodeExecutionResult();
         result.setNodeId(nodeId);
         result.setStatus(Status.SUCCESS);
-        result.setOutputData(outputData);
+        result.setExecutionDetails(executionDetails);
         return result;
     }
 
     // Helper method for success with branching
-    public static NodeExecutionResult success(String nodeId, Object outputData, java.util.List<String> nextNodes) {
+    public static NodeExecutionResult success(String nodeId, Object executionDetails,
+            java.util.List<String> nextNodes) {
         NodeExecutionResult result = new NodeExecutionResult();
         result.setNodeId(nodeId);
         result.setStatus(Status.SUCCESS);
-        result.setOutputData(outputData);
+        result.setExecutionDetails(executionDetails);
         result.setNextNodes(nextNodes);
         return result;
     }

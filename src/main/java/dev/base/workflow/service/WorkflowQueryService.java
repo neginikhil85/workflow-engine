@@ -38,7 +38,7 @@ public class WorkflowQueryService {
      * Check if a workflow is currently running or scheduled
      */
     public boolean isWorkflowRunning(String workflowId) {
-        return runRepository.findByWorkflowIdAndStatus(workflowId, WorkflowRun.RunStatus.ACTIVE).isPresent()
+        return runRepository.findFirstByWorkflowIdAndStatus(workflowId, WorkflowRun.RunStatus.ACTIVE).isPresent()
                 || workflowScheduler.isScheduled(workflowId);
     }
 
