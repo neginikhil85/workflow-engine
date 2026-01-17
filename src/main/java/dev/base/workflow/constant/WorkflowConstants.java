@@ -79,9 +79,8 @@ public final class WorkflowConstants {
     public static final String CFG_KAFKA_MODE = "kafkaMode";
 
     // --- Node Types ---
-    public static final String NODE_TYPE_TRIGGER_CRON = "TriggerNodeType_CRON";
-    public static final String NODE_TYPE_TRIGGER_WEBHOOK = "TriggerNodeType_WEBHOOK";
-    public static final String NODE_TYPE_INTEGRATION_KAFKA = "IntegrationNodeType_KAFKA";
+    // Enums (TriggerNodeType, IntegrationNodeType) are used directly.
+
     public static final String KAFKA_MODE_CONSUMER = "CONSUMER";
 
     // --- Validation Constants ---

@@ -1,6 +1,8 @@
 package dev.base.workflow.service;
 
 import dev.base.workflow.domain.engine.WorkflowEngine;
+import dev.base.workflow.model.nodetype.TriggerNodeType;
+import dev.base.workflow.model.nodetype.IntegrationNodeType;
 import dev.base.workflow.domain.engine.WorkflowRunResult;
 import dev.base.workflow.model.core.ExecutionStatus;
 import dev.base.workflow.mongo.collection.WorkflowDefinition;
@@ -109,11 +111,11 @@ public class WorkflowExecutionService {
         return workflow.getNodes().stream().anyMatch(node -> {
             String type = node.getNodeType();
             // Check for Cron
-            if (NODE_TYPE_TRIGGER_CRON.equals(type) || NODE_TYPE_TRIGGER_WEBHOOK.equals(type))
+            if (TriggerNodeType.CRON.name().equals(type) || TriggerNodeType.WEBHOOK.name().equals(type))
                 return true;
 
             // Check for Kafka Consumer
-            if (NODE_TYPE_INTEGRATION_KAFKA.equals(type)) {
+            if (IntegrationNodeType.KAFKA.name().equals(type)) {
                 if (node.getConfig() instanceof Map<?, ?>) {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> config = (Map<String, Object>) node.getConfig();

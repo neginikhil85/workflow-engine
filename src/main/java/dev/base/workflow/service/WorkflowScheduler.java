@@ -5,7 +5,7 @@ import dev.base.workflow.domain.event.WorkflowScheduledEvent;
 import dev.base.workflow.mongo.collection.NodeDefinition;
 import dev.base.workflow.mongo.collection.WorkflowDefinition;
 import dev.base.workflow.model.nodetype.TriggerNodeType;
-import static dev.base.workflow.constant.WorkflowConstants.NODE_TYPE_TRIGGER_CRON;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -71,8 +71,7 @@ public class WorkflowScheduler {
     }
 
     private boolean isCronNode(NodeDefinition node) {
-        return NODE_TYPE_TRIGGER_CRON.equals(node.getNodeType()) ||
-                TriggerNodeType.CRON.name().equals(node.getNodeType());
+        return TriggerNodeType.CRON.name().equals(node.getNodeType());
     }
 
     public void unscheduleWorkflow(String workflowId) {
