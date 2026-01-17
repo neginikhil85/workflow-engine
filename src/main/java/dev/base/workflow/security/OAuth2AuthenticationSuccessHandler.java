@@ -1,6 +1,6 @@
 package dev.base.workflow.security;
 
-import dev.base.workflow.config.AppProperties;
+import dev.base.workflow.config.AppConfig;
 import dev.base.workflow.mongo.collection.User;
 import dev.base.workflow.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,7 +27,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final JwtService jwtService;
     private final UserService userService;
-    private final AppProperties appProperties;
+    private final AppConfig appConfig;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -53,7 +53,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private void redirectWithToken(HttpServletRequest request,
             HttpServletResponse response,
             User user) throws IOException {
-        var frontend = appProperties.getFrontend();
+        var frontend = appConfig.getFrontend();
         String token = jwtService.generateToken(user.getId(), user.getEmail(), user.getName());
         String redirectUrl = frontend.getUrl() + frontend.getAuthCallbackPath() + token;
         log.info("Redirecting to: {}", redirectUrl);

@@ -2,7 +2,7 @@ package dev.base.workflow.constant;
 
 /**
  * Truly immutable security constants.
- * Configurable values should be in application.yml via AppProperties.
+ * Configurable values should be in application.yml via AppConfig.
  */
 public final class SecurityConstants {
 

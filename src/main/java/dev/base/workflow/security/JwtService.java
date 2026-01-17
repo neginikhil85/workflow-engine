@@ -1,6 +1,6 @@
 package dev.base.workflow.security;
 
-import dev.base.workflow.config.AppProperties;
+import dev.base.workflow.config.AppConfig;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -19,10 +19,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class JwtService {
 
-    private final AppProperties appProperties;
+    private final AppConfig appConfig;
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = appProperties.getJwt().getSecret().getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = appConfig.getJwt().getSecret().getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -31,7 +31,7 @@ public class JwtService {
      */
     public String generateToken(String userId, String email, String name) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + appProperties.getJwt().getExpiration());
+        Date expiryDate = new Date(now.getTime() + appConfig.getJwt().getExpiration());
 
         return Jwts.builder()
                 .subject(userId)

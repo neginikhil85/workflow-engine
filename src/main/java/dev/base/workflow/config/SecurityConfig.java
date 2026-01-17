@@ -26,7 +26,7 @@ public class SecurityConfig {
 
         private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
         private final JwtAuthenticationFilter jwtAuthFilter;
-        private final AppProperties appProperties;
+        private final AppConfig appConfig;
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -45,7 +45,7 @@ public class SecurityConfig {
 
         private void configureAuthorizationRules(
                         org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
-                var security = appProperties.getSecurity();
+                var security = appConfig.getSecurity();
                 auth.requestMatchers(security.getPublicPaths().toArray(String[]::new)).permitAll()
                                 .requestMatchers(security.getAuthPaths().toArray(String[]::new)).permitAll()
                                 .requestMatchers(security.getActuatorPaths().toArray(String[]::new)).permitAll()
@@ -62,7 +62,7 @@ public class SecurityConfig {
         }
 
         private CorsConfiguration createCorsConfiguration() {
-                var cors = appProperties.getCors();
+                var cors = appConfig.getCors();
                 CorsConfiguration config = new CorsConfiguration();
                 config.setAllowedOrigins(cors.getAllowedOrigins());
                 config.setAllowedMethods(cors.getAllowedMethods());

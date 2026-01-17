@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "app")
-public class AppProperties {
+public class AppConfig {
 
     private JwtConfig jwt;
     private AuthRedirectConfig frontend;
