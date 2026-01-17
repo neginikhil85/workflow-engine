@@ -14,5 +14,7 @@ public interface WorkflowDefinitionRepository extends MongoRepository<WorkflowDe
 
     Optional<WorkflowDefinition> findByIdAndActiveTrue(String id);
 
-    List<WorkflowDefinition> findByCreatedBy(String createdBy);
+    List<WorkflowDefinition> findByOwnerId(String ownerId);
+
+    List<WorkflowDefinition> findByOwnerIdAndActiveTrue(String ownerId);
 }

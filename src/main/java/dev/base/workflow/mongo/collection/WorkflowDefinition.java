@@ -28,7 +28,7 @@ public class WorkflowDefinition {
     private List<Edge> edges = new ArrayList<>();
 
     // Metadata
-    private String createdBy;
+    private String ownerId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private boolean active = true;
