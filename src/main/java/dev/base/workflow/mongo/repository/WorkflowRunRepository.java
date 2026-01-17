@@ -16,14 +16,6 @@ public interface WorkflowRunRepository extends MongoRepository<WorkflowRun, Stri
     List<WorkflowRun> findByWorkflowIdOrderByStartTimeDesc(String workflowId);
 
     /**
-     * Find the currently active run for a workflow (should be at most one).
-     * 
-     * @deprecated Use findFirst or findAll to handle potential duplicates safely.
-     */
-    @Deprecated
-    Optional<WorkflowRun> findByWorkflowIdAndStatus(String workflowId, WorkflowRun.RunStatus status);
-
-    /**
      * Safely find the first active run (avoids NonUniqueResultException).
      */
     Optional<WorkflowRun> findFirstByWorkflowIdAndStatus(String workflowId, WorkflowRun.RunStatus status);
