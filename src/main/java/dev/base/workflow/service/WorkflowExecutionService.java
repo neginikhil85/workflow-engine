@@ -109,15 +109,15 @@ public class WorkflowExecutionService {
         return workflow.getNodes().stream().anyMatch(node -> {
             String type = node.getNodeType();
             // Check for Cron
-            if ("TriggerNodeType_CRON".equals(type) || "TriggerNodeType_WEBHOOK".equals(type))
+            if (NODE_TYPE_TRIGGER_CRON.equals(type) || NODE_TYPE_TRIGGER_WEBHOOK.equals(type))
                 return true;
 
             // Check for Kafka Consumer
-            if ("IntegrationNodeType_KAFKA".equals(type)) {
+            if (NODE_TYPE_INTEGRATION_KAFKA.equals(type)) {
                 if (node.getConfig() instanceof Map<?, ?>) {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> config = (Map<String, Object>) node.getConfig();
-                    return config != null && "CONSUMER".equals(config.get("kafkaMode"));
+                    return config != null && KAFKA_MODE_CONSUMER.equals(config.get(CFG_KAFKA_MODE));
                 }
             }
             return false;
