@@ -111,11 +111,11 @@ public class WorkflowExecutionService {
         return workflow.getNodes().stream().anyMatch(node -> {
             String type = node.getNodeType();
             // Check for Cron
-            if (TriggerNodeType.CRON.name().equals(type) || TriggerNodeType.WEBHOOK.name().equals(type))
+            if (TriggerNodeType.CRON.getName().equals(type) || TriggerNodeType.WEBHOOK.getName().equals(type))
                 return true;
 
             // Check for Kafka Consumer
-            if (IntegrationNodeType.KAFKA.name().equals(type)) {
+            if (IntegrationNodeType.KAFKA.getName().equals(type)) {
                 if (node.getConfig() instanceof Map<?, ?>) {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> config = (Map<String, Object>) node.getConfig();

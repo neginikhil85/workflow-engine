@@ -3,9 +3,15 @@ package dev.base.workflow.model.nodetype;
 import dev.base.workflow.model.stage.Stages;
 
 public enum TriggerNodeType implements NodeType {
-    WEBHOOK,
-    CRON,
-    FILE_CHANGE;
+    WEBHOOK("TriggerNodeType_WEBHOOK"),
+    CRON("TriggerNodeType_CRON"),
+    FILE_CHANGE("TriggerNodeType_FILE_CHANGE");
+
+    private final String type;
+
+    TriggerNodeType(String type) {
+        this.type = type;
+    }
 
     @Override
     public Stages getStage() {
@@ -14,6 +20,6 @@ public enum TriggerNodeType implements NodeType {
 
     @Override
     public String getName() {
-        return name();
+        return type;
     }
 }

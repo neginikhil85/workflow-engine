@@ -71,7 +71,7 @@ public class WorkflowScheduler {
     }
 
     private boolean isCronNode(NodeDefinition node) {
-        return TriggerNodeType.CRON.name().equals(node.getNodeType());
+        return TriggerNodeType.CRON.getName().equals(node.getNodeType());
     }
 
     public void unscheduleWorkflow(String workflowId) {
