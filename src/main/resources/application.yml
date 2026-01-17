@@ -70,5 +70,30 @@ app:
     expiration: 86400000  # 24 hours in milliseconds
   frontend:
     url: ${FRONTEND_URL:http://localhost:5173}
+    auth-callback-path: /auth/callback?token=
   cors:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000}
+    allowed-origins:
+      - http://localhost:5173
+      - http://localhost:3000
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - "*"
+    exposed-headers:
+      - Authorization
+  security:
+    public-paths:
+      - /
+      - /error
+      - /favicon.ico
+    auth-paths:
+      - /auth/**
+      - /oauth2/**
+      - /login/**
+    actuator-paths:
+      - /actuator/**
+

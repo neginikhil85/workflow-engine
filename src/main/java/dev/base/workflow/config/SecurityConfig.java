@@ -3,7 +3,6 @@ package dev.base.workflow.config;
 import dev.base.workflow.security.JwtAuthenticationFilter;
 import dev.base.workflow.security.OAuth2AuthenticationSuccessHandler;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,10 +16,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
-
-import static dev.base.workflow.constant.SecurityConstants.*;
-
 /**
  * Security configuration for OAuth2 login with Google and GitHub.
  */
@@ -31,9 +26,7 @@ public class SecurityConfig {
 
         private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
         private final JwtAuthenticationFilter jwtAuthFilter;
-
-        @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000}")
-        private List<String> allowedOrigins;
+        private final AppProperties appProperties;
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -52,9 +45,10 @@ public class SecurityConfig {
 
         private void configureAuthorizationRules(
                         org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
-                auth.requestMatchers(PUBLIC_PATHS).permitAll()
-                                .requestMatchers(AUTH_PATHS).permitAll()
-                                .requestMatchers(ACTUATOR_PATHS).permitAll()
+                var security = appProperties.getSecurity();
+                auth.requestMatchers(security.getPublicPaths().toArray(String[]::new)).permitAll()
+                                .requestMatchers(security.getAuthPaths().toArray(String[]::new)).permitAll()
+                                .requestMatchers(security.getActuatorPaths().toArray(String[]::new)).permitAll()
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 .anyRequest().authenticated();
         }
@@ -68,12 +62,13 @@ public class SecurityConfig {
         }
 
         private CorsConfiguration createCorsConfiguration() {
+                var cors = appProperties.getCors();
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(allowedOrigins);
-                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                config.setAllowedHeaders(List.of("*"));
+                config.setAllowedOrigins(cors.getAllowedOrigins());
+                config.setAllowedMethods(cors.getAllowedMethods());
+                config.setAllowedHeaders(cors.getAllowedHeaders());
                 config.setAllowCredentials(true);
-                config.setExposedHeaders(List.of("Authorization"));
+                config.setExposedHeaders(cors.getExposedHeaders());
                 return config;
         }
 }

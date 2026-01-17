@@ -255,6 +255,91 @@ public class WorkflowService {
 5. **No null returns** - Use `Optional<T>`
 6. **Max 15 lines per method** - Extract helper methods if longer
 7. **Package by feature, not layer** - `domain/executor/` not `executors/`
+8. **No magic values in code** - Use constants or config
+
+---
+
+## Configuration Management
+
+### Rule: @ConfigurationProperties for Grouped Configs
+
+When you have multiple related config values, use `@ConfigurationProperties` with a dedicated class:
+
+```java
+@Data
+@Configuration
+@ConfigurationProperties(prefix = "app")
+public class AppProperties {
+
+    private Jwt jwt = new Jwt();
+    private Cors cors = new Cors();
+
+    @Data
+    public static class Jwt {
+        private String secret;
+        private long expiration = 86400000;
+    }
+
+    @Data
+    public static class Cors {
+        private List<String> allowedOrigins;
+        private List<String> allowedMethods;
+    }
+}
+```
+
+**Usage in services:**
+```java
+@RequiredArgsConstructor
+public class JwtService {
+    private final AppProperties appProperties;
+    
+    public void doSomething() {
+        String secret = appProperties.getJwt().getSecret();
+    }
+}
+```
+
+### Rule: @Value for Single Standalone Values
+
+Only use `@Value` for truly single, unrelated config values:
+
+```java
+@Value("${server.port}")
+private int port;
+```
+
+### Rule: Constants vs Config
+
+| Type | Where | Example |
+|------|-------|---------|
+| **Immutable business constants** | `constant/` package | OAuth2 provider names, attribute keys |
+| **Configurable values** | `application.yml` | URLs, paths, timeouts, lists |
+| **Secrets** | Environment variables | API keys, passwords |
+
+**Constants file example:**
+```java
+public final class SecurityConstants {
+    // ✅ Immutable - defined by OAuth2 spec
+    public static final String PROVIDER_GOOGLE = "google";
+    public static final String ATTR_EMAIL = "email";
+    
+    // ❌ DON'T put configurable values here
+    // public static final String[] AUTH_PATHS = {...}
+}
+```
+
+**application.yml example:**
+```yaml
+app:
+  security:
+    public-paths:
+      - /
+      - /error
+    auth-paths:
+      - /auth/**
+      - /oauth2/**
+```
 
 ---
 

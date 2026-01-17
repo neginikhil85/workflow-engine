@@ -1,12 +1,12 @@
 package dev.base.workflow.security;
 
+import dev.base.workflow.config.AppProperties;
 import dev.base.workflow.mongo.collection.User;
 import dev.base.workflow.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -27,9 +27,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final JwtService jwtService;
     private final UserService userService;
-
-    @Value("${app.frontend.url:http://localhost:5173}")
-    private String frontendUrl;
+    private final AppProperties appProperties;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -55,8 +53,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private void redirectWithToken(HttpServletRequest request,
             HttpServletResponse response,
             User user) throws IOException {
+        var frontend = appProperties.getFrontend();
         String token = jwtService.generateToken(user.getId(), user.getEmail(), user.getName());
-        String redirectUrl = frontendUrl + AUTH_CALLBACK_PATH + token;
+        String redirectUrl = frontend.getUrl() + frontend.getAuthCallbackPath() + token;
         log.info("Redirecting to: {}", redirectUrl);
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
