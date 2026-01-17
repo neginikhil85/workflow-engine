@@ -113,7 +113,7 @@ public class WorkflowExecutionService {
             return false;
 
         return workflow.getNodes().stream().anyMatch(node -> {
-            String type = node.getType();
+            String type = node.getNodeType();
             // Check for Cron
             if ("TriggerNodeType_CRON".equals(type) || "TriggerNodeType_WEBHOOK".equals(type))
                 return true;
