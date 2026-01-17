@@ -34,12 +34,16 @@ public class WorkflowService {
         return executionService.executeWorkflow(workflowId, input);
     }
 
-    public Object executeWorkflowWithRun(String workflowId, Object input, String runId) {
-        return executionService.executeWorkflowWithRun(workflowId, input, runId);
+    public void executeWorkflowWithRun(String workflowId, Object input, String runId) {
+        executionService.executeWorkflowWithRun(workflowId, input, runId);
     }
 
     public void stopWorkflow(String workflowId) {
         executionService.stopWorkflow(workflowId);
+    }
+
+    public void executeWorkflowByTrigger(String workflowId, Object input, WorkflowRun.TriggerType triggerType) {
+        executionService.executeWorkflowByTrigger(workflowId, input, triggerType);
     }
 
     // --- Management Delegation ---

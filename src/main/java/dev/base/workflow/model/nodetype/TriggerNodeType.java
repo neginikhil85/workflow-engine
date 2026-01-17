@@ -5,7 +5,8 @@ import dev.base.workflow.model.stage.Stages;
 public enum TriggerNodeType implements NodeType {
     WEBHOOK("TriggerNodeType_WEBHOOK"),
     CRON("TriggerNodeType_CRON"),
-    FILE_CHANGE("TriggerNodeType_FILE_CHANGE");
+    FILE_CHANGE("TriggerNodeType_FILE_CHANGE"),
+    KAFKA("TriggerNodeType_KAFKA");
 
     private final String type;
 

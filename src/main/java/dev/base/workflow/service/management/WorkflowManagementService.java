@@ -4,6 +4,7 @@ import dev.base.workflow.exception.WorkflowNotFoundException;
 import dev.base.workflow.mongo.collection.WorkflowDefinition;
 import dev.base.workflow.mongo.repository.WorkflowDefinitionRepository;
 import dev.base.workflow.service.execution.WorkflowScheduler;
+import dev.base.workflow.service.execution.trigger.KafkaTriggerManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class WorkflowManagementService {
     private final WorkflowDefinitionRepository workflowRepository;
     private final WorkflowDefinitionMapper workflowMapper;
     private final WorkflowScheduler workflowScheduler;
+    private final KafkaTriggerManager kafkaTriggerManager;
 
     /**
      * Create or update a workflow
@@ -61,5 +63,6 @@ public class WorkflowManagementService {
         workflow.setActive(false);
         workflowRepository.save(workflow);
         workflowScheduler.unscheduleWorkflow(id);
+        kafkaTriggerManager.stopConsumer(id);
     }
 }

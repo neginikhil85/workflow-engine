@@ -22,4 +22,14 @@ public class WorkflowEventListener {
             log.error("Failed to execute scheduled workflow: {}", event.getWorkflowId(), e);
         }
     }
+
+    @EventListener
+    public void handleTriggerEvent(WorkflowTriggerEvent event) {
+        log.info("Received trigger event for workflow: {} type: {}", event.getWorkflowId(), event.getTriggerType());
+        try {
+            workflowService.executeWorkflowByTrigger(event.getWorkflowId(), event.getInput(), event.getTriggerType());
+        } catch (Exception e) {
+            log.error("Failed to execute triggered workflow: {}", event.getWorkflowId(), e);
+        }
+    }
 }

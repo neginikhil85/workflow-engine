@@ -1,7 +1,6 @@
 package dev.base.workflow.service.execution.helper;
 
 import dev.base.workflow.exception.RunNotFoundException;
-import dev.base.workflow.model.nodetype.IntegrationNodeType;
 import dev.base.workflow.model.nodetype.TriggerNodeType;
 import dev.base.workflow.mongo.collection.WorkflowDefinition;
 import dev.base.workflow.mongo.collection.WorkflowRun;
@@ -10,9 +9,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import com.nimbusds.oauth2.sdk.util.CollectionUtils;
+
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static dev.base.workflow.constant.WorkflowConstants.*;
 
@@ -94,23 +95,11 @@ public class WorkflowRunHelper {
     }
 
     public boolean isContinuousWorkflow(WorkflowDefinition workflow) {
-        if (workflow.getNodes() == null)
+        if (CollectionUtils.isEmpty(workflow.getNodes()))
             return false;
 
-        return workflow.getNodes().stream().anyMatch(node -> {
-            String type = node.getNodeType();
-            // Check for Cron
-            if (TriggerNodeType.CRON.getName().equals(type) || TriggerNodeType.WEBHOOK.getName().equals(type))
-                return true;
-
-            // Check for Kafka Consumer
-            if (IntegrationNodeType.KAFKA.getName().equals(type)) {
-                if (node.getConfig() instanceof Map<?, ?>) {
-                    Map<String, Object> config = (Map<String, Object>) node.getConfig();
-                    return config != null && KAFKA_MODE_CONSUMER.equals(config.get(CFG_KAFKA_MODE));
-                }
-            }
-            return false;
-        });
+        return workflow.getNodes().stream()
+                .anyMatch(node -> Arrays.stream(TriggerNodeType.values())
+                        .anyMatch(trigger -> trigger.getName().equals(node.getNodeType())));
     }
 }

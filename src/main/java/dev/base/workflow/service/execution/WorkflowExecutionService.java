@@ -8,6 +8,7 @@ import dev.base.workflow.mongo.collection.WorkflowRun;
 import dev.base.workflow.mongo.repository.WorkflowDefinitionRepository;
 import dev.base.workflow.service.execution.helper.WorkflowExecutionHelper;
 import dev.base.workflow.service.execution.helper.WorkflowRunHelper;
+import dev.base.workflow.service.execution.trigger.KafkaTriggerManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ public class WorkflowExecutionService {
     private final WorkflowEngine workflowEngine;
     private final WorkflowDefinitionRepository workflowRepository;
     private final WorkflowScheduler workflowScheduler;
+    private final KafkaTriggerManager kafkaTriggerManager;
     private final WorkflowRunHelper runHelper;
     private final WorkflowExecutionHelper executionHelper;
 
@@ -49,8 +51,8 @@ public class WorkflowExecutionService {
      * Execute a workflow within an existing Run (used by Cron/Kafka ticks)
      */
     @Transactional
-    public Object executeWorkflowWithRun(String workflowId, Object input, String runId) {
-        return executeWorkflow(workflowId, input, runId, null);
+    public void executeWorkflowWithRun(String workflowId, Object input, String runId) {
+        executeWorkflow(workflowId, input, runId, null);
     }
 
     /**
@@ -60,10 +62,19 @@ public class WorkflowExecutionService {
         log.info(LOG_STOPPING_WORKFLOW, workflowId);
 
         workflowScheduler.unscheduleWorkflow(workflowId);
+        kafkaTriggerManager.stopConsumer(workflowId);
         runHelper.stopActiveRuns(workflowId);
         cancelRunningExecutions(workflowId);
 
         log.info(LOG_WORKFLOW_STOPPED, workflowId);
+    }
+
+    /**
+     * Execute a workflow triggered by an external event (e.g. Kafka, Webhook)
+     */
+    @Transactional
+    public void executeWorkflowByTrigger(String workflowId, Object input, WorkflowRun.TriggerType triggerType) {
+        executeWorkflow(workflowId, input, null, triggerType);
     }
 
     /**
