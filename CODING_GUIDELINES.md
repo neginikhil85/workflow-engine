@@ -246,6 +246,8 @@ public class WorkflowService {
 
 ---
 
+---
+
 ## Code Quality Rules
 
 1. **No @Autowired on fields** - Use constructor injection
@@ -256,6 +258,9 @@ public class WorkflowService {
 6. **Max 15 lines per method** - Extract helper methods if longer
 7. **Package by feature, not layer** - `domain/executor/` not `executors/`
 8. **No magic values in code** - Use constants or config
+9. **Method Ordering** - Public methods first, then private helper methods.
+10. **Clean Imports** - No unused imports. No wildcard imports (`import java.util.*`).
+11. **Clean Build** - Code must compile cleanly with `-Xlint:all`. Use `@SuppressWarnings` only when absolutely necessary and narrowly scoped.
 
 ---
 

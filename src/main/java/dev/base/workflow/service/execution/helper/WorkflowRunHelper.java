@@ -106,7 +106,6 @@ public class WorkflowRunHelper {
             // Check for Kafka Consumer
             if (IntegrationNodeType.KAFKA.getName().equals(type)) {
                 if (node.getConfig() instanceof Map<?, ?>) {
-                    @SuppressWarnings("unchecked")
                     Map<String, Object> config = (Map<String, Object>) node.getConfig();
                     return config != null && KAFKA_MODE_CONSUMER.equals(config.get(CFG_KAFKA_MODE));
                 }
