@@ -84,6 +84,16 @@ public class WorkflowExecutionService {
         try {
             var runResult = workflowEngine.run(workflow, input, run.getId());
             completeExecution(execution, runResult);
+
+            // Auto-complete run for one-time workflows (MANUAL trigger + No continuous
+            // nodes)
+            if (triggerType == WorkflowRun.TriggerType.MANUAL && !isContinuousWorkflow(workflow)) {
+                log.info("Auto-completing run {} for one-time workflow {}", run.getId(), workflowId);
+                run.setStatus(WorkflowRun.RunStatus.COMPLETED);
+                run.setEndTime(LocalDateTime.now());
+                runRepository.save(run);
+            }
+
             return Map.of(
                     KEY_RUN_ID, run.getId(),
                     KEY_OUTPUT, runResult.getOutput() != null ? runResult.getOutput() : DEFAULT_NULL,
@@ -96,6 +106,26 @@ public class WorkflowExecutionService {
             runningExecutions.remove(execution.getId());
             updateRunStats(run, failed);
         }
+    }
+
+    private boolean isContinuousWorkflow(WorkflowDefinition workflow) {
+        if (workflow.getNodes() == null)
+            return false;
+
+        return workflow.getNodes().stream().anyMatch(node -> {
+            String type = node.getType();
+            // Check for Cron
+            if ("TriggerNodeType_CRON".equals(type) || "TriggerNodeType_WEBHOOK".equals(type))
+                return true;
+
+            // Check for Kafka Consumer
+            if ("IntegrationNodeType_KAFKA".equals(type)) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> config = (Map<String, Object>) node.getConfig();
+                return config != null && "CONSUMER".equals(config.get("kafkaMode"));
+            }
+            return false;
+        });
     }
 
     private WorkflowRun getOrCreateRun(String workflowId, String existingRunId, WorkflowRun.TriggerType triggerType) {
