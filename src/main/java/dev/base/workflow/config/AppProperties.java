@@ -8,42 +8,42 @@ import java.util.List;
 
 /**
  * Application-wide configuration properties.
- * Grouped configs loaded from application.yml under 'app' prefix.
+ * Loaded from application.yml under 'app' prefix.
  */
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
 
-    private Jwt jwt = new Jwt();
-    private Frontend frontend = new Frontend();
-    private Cors cors = new Cors();
-    private Security security = new Security();
+    private JwtConfig jwt;
+    private AuthRedirectConfig frontend;
+    private CorsConfig cors;
+    private SecurityPathsConfig security;
 
     @Data
-    public static class Jwt {
-        private String secret = "workflow-studio-secret-key-change-in-production-must-be-256-bits-long";
-        private long expiration = 86400000; // 24 hours
+    public static class JwtConfig {
+        private String secret;
+        private long expiration;
     }
 
     @Data
-    public static class Frontend {
-        private String url = "http://localhost:5173";
-        private String authCallbackPath = "/auth/callback?token=";
+    public static class AuthRedirectConfig {
+        private String url;
+        private String authCallbackPath;
     }
 
     @Data
-    public static class Cors {
-        private List<String> allowedOrigins = List.of("http://localhost:5173", "http://localhost:3000");
-        private List<String> allowedMethods = List.of("GET", "POST", "PUT", "DELETE", "OPTIONS");
-        private List<String> allowedHeaders = List.of("*");
-        private List<String> exposedHeaders = List.of("Authorization");
+    public static class CorsConfig {
+        private List<String> allowedOrigins;
+        private List<String> allowedMethods;
+        private List<String> allowedHeaders;
+        private List<String> exposedHeaders;
     }
 
     @Data
-    public static class Security {
-        private List<String> publicPaths = List.of("/", "/error", "/favicon.ico");
-        private List<String> authPaths = List.of("/auth/**", "/oauth2/**", "/login/**");
-        private List<String> actuatorPaths = List.of("/actuator/**");
+    public static class SecurityPathsConfig {
+        private List<String> publicPaths;
+        private List<String> authPaths;
+        private List<String> actuatorPaths;
     }
 }
