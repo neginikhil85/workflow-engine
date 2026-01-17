@@ -269,33 +269,40 @@ When you have multiple related config values, use `@ConfigurationProperties` wit
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "app")
-public class AppProperties {
+public class AppConfig {  // ← Technical, ≤15 chars
 
-    private Jwt jwt = new Jwt();
-    private Cors cors = new Cors();
+    private JwtConfig jwt;             // ← No 'new', Spring creates from yml
+    private AuthRedirectConfig frontend;
+    private CorsConfig cors;
 
     @Data
-    public static class Jwt {
+    public static class JwtConfig {    // ← Descriptive: what it configures
         private String secret;
-        private long expiration = 86400000;
+        private long expiration;
     }
 
     @Data
-    public static class Cors {
-        private List<String> allowedOrigins;
-        private List<String> allowedMethods;
+    public static class AuthRedirectConfig {  // ← Describes purpose, not generic "Frontend"
+        private String url;
+        private String authCallbackPath;
     }
 }
 ```
+
+**Rules:**
+- **No `new` in field declarations** - Spring creates nested objects from yml binding
+- **Descriptive class names** - `AuthRedirectConfig` not `Frontend`
+- **Class names ≤15 chars** unless justified
+- **No default values** - All values come from yml
 
 **Usage in services:**
 ```java
 @RequiredArgsConstructor
 public class JwtService {
-    private final AppProperties appProperties;
+    private final AppConfig appConfig;  // Inject the config class
     
     public void doSomething() {
-        String secret = appProperties.getJwt().getSecret();
+        String secret = appConfig.getJwt().getSecret();
     }
 }
 ```
