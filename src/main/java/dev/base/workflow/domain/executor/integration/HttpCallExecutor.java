@@ -50,24 +50,23 @@ public class HttpCallExecutor implements NodeExecutor {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public NodeExecutionResult execute(NodeDefinition node, Object input, ExecutionContext ctx) {
         validate(node);
 
         Map<String, Object> config = node.getConfig();
         String url = (String) config.get(CFG_URL);
-        String method = config.getOrDefault(CFG_METHOD, "GET").toString().toUpperCase();
+        String method = config.getOrDefault(CFG_METHOD, HTTP_METHOD_GET).toString().toUpperCase();
         String body = (String) config.getOrDefault(CFG_BODY, "");
 
         log.info("Executing HTTP {} to {}", method, url);
 
         try {
             Map<String, String> requestHeaders = extractHeaders(config);
-
-            String responseBody = executeRequest(url, method, body, config);
-            int statusCode = 200; // Placeholder until we improve RestClient usage to get status
+            String responseBody = performRequest(url, method, body, config);
 
             return NodeExecutionResult.success(node.getId(), HttpExecutionDetails.builder()
-                    .status(statusCode)
+                    .status(200) // Placeholder
                     .method(method)
                     .url(url)
                     .requestBody(body)
@@ -88,6 +87,38 @@ public class HttpCallExecutor implements NodeExecutor {
         }
     }
 
+    private String performRequest(String url, String method, String body, Map<String, Object> config) {
+        return switch (method) {
+            case HTTP_METHOD_POST -> restClient.post()
+                    .uri(url)
+                    .headers(h -> applyHeaders(h, config))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .body(String.class);
+
+            case HTTP_METHOD_PUT -> restClient.put()
+                    .uri(url)
+                    .headers(h -> applyHeaders(h, config))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .body(String.class);
+
+            case HTTP_METHOD_DELETE -> restClient.delete()
+                    .uri(url)
+                    .headers(h -> applyHeaders(h, config))
+                    .retrieve()
+                    .body(String.class);
+
+            default -> restClient.get()
+                    .uri(url)
+                    .headers(h -> applyHeaders(h, config))
+                    .retrieve()
+                    .body(String.class);
+        };
+    }
+
     private Map<String, String> extractHeaders(Map<String, Object> config) {
         Map<String, String> headers = new java.util.HashMap<>();
         if (config.containsKey(CFG_HEADERS) && config.get(CFG_HEADERS) instanceof List) {
@@ -101,38 +132,6 @@ public class HttpCallExecutor implements NodeExecutor {
             }
         }
         return headers;
-    }
-
-    private String executeRequest(String url, String method, String body, Map<String, Object> config) {
-        return switch (method) {
-            case "POST" -> restClient.post()
-                    .uri(url)
-                    .headers(h -> applyHeaders(h, config))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(body)
-                    .retrieve()
-                    .body(String.class);
-
-            case "PUT" -> restClient.put()
-                    .uri(url)
-                    .headers(h -> applyHeaders(h, config))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(body)
-                    .retrieve()
-                    .body(String.class);
-
-            case "DELETE" -> restClient.delete()
-                    .uri(url)
-                    .headers(h -> applyHeaders(h, config))
-                    .retrieve()
-                    .body(String.class);
-
-            default -> restClient.get()
-                    .uri(url)
-                    .headers(h -> applyHeaders(h, config))
-                    .retrieve()
-                    .body(String.class);
-        };
     }
 
     @SuppressWarnings("unchecked")

@@ -20,6 +20,7 @@ public interface WorkflowRunRepository extends MongoRepository<WorkflowRun, Stri
      * 
      * @deprecated Use findFirst or findAll to handle potential duplicates safely.
      */
+    @Deprecated
     Optional<WorkflowRun> findByWorkflowIdAndStatus(String workflowId, WorkflowRun.RunStatus status);
 
     /**

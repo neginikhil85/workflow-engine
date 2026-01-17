@@ -1,8 +1,6 @@
 package dev.base.workflow.domain.core.adapter.impl;
 
 import dev.base.workflow.domain.core.adapter.IntegrationAdapter;
-import dev.base.workflow.model.core.ExecutionContext;
-import dev.base.workflow.mongo.collection.NodeDefinition;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;

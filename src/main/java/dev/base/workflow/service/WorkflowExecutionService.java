@@ -68,26 +68,30 @@ public class WorkflowExecutionService {
     private Object executeWorkflow(String workflowId, Object input, String existingRunId,
             WorkflowRun.TriggerType triggerType) {
         log.info(LOG_STARTING_EXECUTION, workflowId);
+        WorkflowDefinition workflow = resolveWorkflow(workflowId);
 
-        WorkflowDefinition workflow = workflowRepository.findByIdAndActiveTrue(workflowId)
-                .orElseThrow(() -> new WorkflowNotFoundException(workflowId));
-
-        // --- WorkflowRun Logic ---
         WorkflowRun run = getOrCreateRun(workflowId, existingRunId, triggerType);
         if (run == null) {
             return Map.of(KEY_SKIPPED, true, KEY_REASON, REASON_RUN_STOPPED);
         }
 
-        // Create execution record linked to Run
-        WorkflowExecution execution = createExecution(workflowId, run.getId());
-        runningExecutions.put(execution.getId(), Thread.currentThread());
+        return runWorkflowLogic(workflow, input, run, triggerType);
+    }
 
+    private WorkflowDefinition resolveWorkflow(String workflowId) {
+        return workflowRepository.findByIdAndActiveTrue(workflowId)
+                .orElseThrow(() -> new WorkflowNotFoundException(workflowId));
+    }
+
+    private Object runWorkflowLogic(WorkflowDefinition workflow, Object input, WorkflowRun run,
+            WorkflowRun.TriggerType triggerType) {
+        WorkflowExecution execution = createExecution(workflow.getId(), run.getId());
+        runningExecutions.put(execution.getId(), Thread.currentThread());
         boolean failed = false;
+
         try {
             var runResult = workflowEngine.run(workflow, input, run.getId());
             completeExecution(execution, runResult);
-
-            // Handle potential auto-completion of the run
             handleOneTimeWorkflowCompletion(run, workflow, triggerType);
 
             return Map.of(
