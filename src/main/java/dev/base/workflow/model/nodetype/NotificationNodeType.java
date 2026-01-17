@@ -3,9 +3,15 @@ package dev.base.workflow.model.nodetype;
 import dev.base.workflow.model.stage.Stages;
 
 public enum NotificationNodeType implements NodeType {
-    EMAIL,
-    LOG,
-    CONSOLE;
+    EMAIL("NotificationNodeType_EMAIL"),
+    LOG("NotificationNodeType_LOG"),
+    CONSOLE("NotificationNodeType_CONSOLE");
+
+    private final String type;
+
+    NotificationNodeType(String type) {
+        this.type = type;
+    }
 
     @Override
     public Stages getStage() {
@@ -14,6 +20,6 @@ public enum NotificationNodeType implements NodeType {
 
     @Override
     public String getName() {
-        return name();
+        return type;
     }
 }

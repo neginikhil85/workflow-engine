@@ -3,10 +3,16 @@ package dev.base.workflow.model.nodetype;
 import dev.base.workflow.model.stage.Stages;
 
 public enum ControlFlowNodeType implements NodeType {
-    IF,
-    SWITCH,
-    LOOP,
-    DELAY;
+    IF("ControlFlowNodeType_IF"),
+    SWITCH("ControlFlowNodeType_SWITCH"),
+    LOOP("ControlFlowNodeType_LOOP"),
+    DELAY("ControlFlowNodeType_DELAY");
+
+    private final String type;
+
+    ControlFlowNodeType(String type) {
+        this.type = type;
+    }
 
     @Override
     public Stages getStage() {
@@ -15,6 +21,6 @@ public enum ControlFlowNodeType implements NodeType {
 
     @Override
     public String getName() {
-        return name();
+        return type;
     }
 }
