@@ -1,16 +1,16 @@
 package dev.base.workflow.domain.executor.notification;
 
 import dev.base.workflow.domain.engine.NodeExecutor;
-import dev.base.workflow.mongo.collection.NodeDefinition;
-import dev.base.workflow.mongo.collection.NodeExecutionResult;
 import dev.base.workflow.model.core.ExecutionContext;
 import dev.base.workflow.model.nodetype.NodeType;
 import dev.base.workflow.model.nodetype.NotificationNodeType;
+import dev.base.workflow.mongo.collection.NodeDefinition;
+import dev.base.workflow.mongo.collection.NodeExecutionResult;
+import dev.base.workflow.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import dev.base.workflow.util.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;

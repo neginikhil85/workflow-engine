@@ -2,20 +2,18 @@ package dev.base.workflow.domain.executor.validation;
 
 import dev.base.workflow.domain.engine.NodeExecutor;
 import dev.base.workflow.model.core.ExecutionContext;
+import dev.base.workflow.model.nodetype.ValidationNodeType;
 import dev.base.workflow.mongo.collection.NodeDefinition;
 import dev.base.workflow.mongo.collection.NodeExecutionResult;
-import dev.base.workflow.model.nodetype.ValidationNodeType;
+import dev.base.workflow.util.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 
-import static dev.base.workflow.constant.WorkflowConstants.FIELD_ID;
-import static dev.base.workflow.constant.WorkflowConstants.FIELD_NAME;
-import static dev.base.workflow.constant.WorkflowConstants.CFG_REQUIRED_FIELDS;
-import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_VALIDATION_NOT_MAP;
+import static dev.base.workflow.constant.WorkflowConstants.*;
 import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_VALIDATION_MISSING_FMT;
-import dev.base.workflow.util.StringUtils;
+import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_VALIDATION_NOT_MAP;
 
 @Component
 public class RequiredFieldsValidatorExecutor implements NodeExecutor {

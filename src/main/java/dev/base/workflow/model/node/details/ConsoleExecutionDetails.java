@@ -2,6 +2,7 @@ package dev.base.workflow.model.node.details;
 
 import lombok.Builder;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Data

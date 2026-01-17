@@ -6,9 +6,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 import static dev.base.workflow.constant.WorkflowConstants.*;
-import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_WHATSAPP_APIKEY_MISSING;
-import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_WHATSAPP_PHONE_EMPTY;
-import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_WHATSAPP_RECIPIENT_MISSING;
+import static dev.base.workflow.constant.WorkflowErrorConstants.*;
 
 /**
  * WhatsApp integration adapter.

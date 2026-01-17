@@ -1,19 +1,19 @@
 package dev.base.workflow.domain.executor.integration;
 
-import dev.base.workflow.util.StringUtils;
 import dev.base.workflow.domain.engine.NodeExecutor;
 import dev.base.workflow.model.core.ExecutionContext;
-import dev.base.workflow.mongo.collection.NodeDefinition;
-import dev.base.workflow.mongo.collection.NodeExecutionResult;
+import dev.base.workflow.model.node.details.HttpExecutionDetails;
 import dev.base.workflow.model.nodetype.IntegrationNodeType;
 import dev.base.workflow.model.nodetype.NodeType;
+import dev.base.workflow.mongo.collection.NodeDefinition;
+import dev.base.workflow.mongo.collection.NodeExecutionResult;
+import dev.base.workflow.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
-import dev.base.workflow.model.node.details.HttpExecutionDetails;
 import java.util.List;
 import java.util.Map;
 
@@ -70,7 +70,7 @@ public class HttpCallExecutor implements NodeExecutor {
                     .url(url)
                     .requestBody(body)
                     .requestHeaders(requestHeaders)
-                    .data(responseBody)
+                    .response(responseBody)
                     .build());
 
         } catch (Exception e) {

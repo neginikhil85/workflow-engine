@@ -2,10 +2,9 @@ package dev.base.workflow.service.execution;
 
 import dev.base.workflow.constant.WorkflowConstants;
 import dev.base.workflow.domain.event.WorkflowScheduledEvent;
+import dev.base.workflow.model.nodetype.TriggerNodeType;
 import dev.base.workflow.mongo.collection.NodeDefinition;
 import dev.base.workflow.mongo.collection.WorkflowDefinition;
-import dev.base.workflow.model.nodetype.TriggerNodeType;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

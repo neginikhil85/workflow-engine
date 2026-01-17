@@ -1,15 +1,12 @@
 package dev.base.workflow.service.integration;
 
+import dev.base.workflow.util.StringUtils;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.admin.DescribeClusterResult;
-import org.apache.kafka.clients.admin.ListTopicsResult;
-import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.admin.*;
 import org.apache.kafka.common.Node;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.PreDestroy;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -17,10 +14,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static dev.base.workflow.constant.KafkaConstants.*;
-import static dev.base.workflow.constant.WorkflowConstants.KEY_SUCCESS;
 import static dev.base.workflow.constant.WorkflowConstants.KEY_ERROR;
-
-import dev.base.workflow.util.StringUtils;
+import static dev.base.workflow.constant.WorkflowConstants.KEY_SUCCESS;
 
 /**
  * Service for Kafka admin operations: test connection, list/create topics.

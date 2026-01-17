@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 import static dev.base.workflow.constant.WorkflowConstants.*;
-import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_SLACK_TOKEN_MISSING;
 import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_SLACK_CHANNEL_MISSING;
+import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_SLACK_TOKEN_MISSING;
 
 /**
  * Slack integration adapter.

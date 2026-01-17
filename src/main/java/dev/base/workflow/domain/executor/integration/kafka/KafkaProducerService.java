@@ -17,9 +17,9 @@ import java.util.Properties;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static dev.base.workflow.constant.WorkflowConstants.*;
 import static dev.base.workflow.constant.KafkaConstants.*;
-import static dev.base.workflow.constant.WorkflowErrorConstants.*;
+import static dev.base.workflow.constant.WorkflowConstants.KEY_STATUS;
+import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_KAFKA_TOPIC_PRODUCER;
 
 /**
  * Handles Kafka Producer operations.

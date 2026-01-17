@@ -2,15 +2,15 @@ package dev.base.workflow.domain.executor.trigger;
 
 import dev.base.workflow.domain.engine.NodeExecutor;
 import dev.base.workflow.model.core.ExecutionContext;
-import dev.base.workflow.mongo.collection.NodeDefinition;
-import dev.base.workflow.mongo.collection.NodeExecutionResult;
+import dev.base.workflow.model.node.details.CronExecutionDetails;
 import dev.base.workflow.model.nodetype.NodeType;
 import dev.base.workflow.model.nodetype.TriggerNodeType;
+import dev.base.workflow.mongo.collection.NodeDefinition;
+import dev.base.workflow.mongo.collection.NodeExecutionResult;
 import org.springframework.stereotype.Component;
 
-import dev.base.workflow.model.node.details.CronExecutionDetails;
-
-import static dev.base.workflow.constant.WorkflowConstants.*;
+import static dev.base.workflow.constant.WorkflowConstants.CFG_CRON;
+import static dev.base.workflow.constant.WorkflowConstants.KEY_RUN_ID;
 
 @Component
 @lombok.RequiredArgsConstructor

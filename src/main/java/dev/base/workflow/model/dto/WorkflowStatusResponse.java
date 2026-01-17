@@ -1,7 +1,7 @@
 package dev.base.workflow.model.dto;
 
-import dev.base.workflow.model.core.ExecutionStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.base.workflow.model.core.ExecutionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

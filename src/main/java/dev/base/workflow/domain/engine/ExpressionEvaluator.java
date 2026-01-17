@@ -1,7 +1,7 @@
 package dev.base.workflow.domain.engine;
 
-import dev.base.workflow.model.core.ExecutionContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.base.workflow.model.core.ExecutionContext;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.common.TemplateParserContext;
@@ -9,8 +9,8 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 
-import static dev.base.workflow.constant.WorkflowConstants.EXPR_VAR_INPUT;
 import static dev.base.workflow.constant.WorkflowConstants.EXPR_VAR_CTX;
+import static dev.base.workflow.constant.WorkflowConstants.EXPR_VAR_INPUT;
 
 /**
  * Evaluates runtime conditions and templates using Spring Expression Language

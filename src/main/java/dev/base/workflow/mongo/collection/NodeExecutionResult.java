@@ -1,13 +1,12 @@
 package dev.base.workflow.mongo.collection;
 
 import lombok.Data;
-
-import java.util.List;
-import java.time.LocalDateTime;
-import org.springframework.data.mongodb.core.index.Indexed;
-
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Document(collection = "node_execution_results")

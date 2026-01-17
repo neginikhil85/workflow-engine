@@ -1,12 +1,13 @@
 package dev.base.workflow.service.execution;
 
 import dev.base.workflow.domain.engine.WorkflowEngine;
+import dev.base.workflow.exception.WorkflowNotFoundException;
 import dev.base.workflow.mongo.collection.WorkflowDefinition;
-import dev.base.workflow.mongo.collection.WorkflowRun;
 import dev.base.workflow.mongo.collection.WorkflowExecution;
+import dev.base.workflow.mongo.collection.WorkflowRun;
 import dev.base.workflow.mongo.repository.WorkflowDefinitionRepository;
-import dev.base.workflow.service.execution.helper.WorkflowRunHelper;
 import dev.base.workflow.service.execution.helper.WorkflowExecutionHelper;
+import dev.base.workflow.service.execution.helper.WorkflowRunHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,9 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import dev.base.workflow.exception.WorkflowNotFoundException;
 import static dev.base.workflow.constant.WorkflowConstants.*;
-import static dev.base.workflow.constant.WorkflowErrorConstants.*;
+import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_STOPPED_BY_USER;
 
 /**
  * Handles workflow execution lifecycle.

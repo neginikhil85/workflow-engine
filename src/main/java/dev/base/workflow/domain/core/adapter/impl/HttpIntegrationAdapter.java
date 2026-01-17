@@ -1,19 +1,19 @@
 package dev.base.workflow.domain.core.adapter.impl;
 
 import dev.base.workflow.domain.core.adapter.IntegrationAdapter;
+import dev.base.workflow.util.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Map;
-import dev.base.workflow.util.StringUtils;
 import java.time.Duration;
+import java.util.Map;
 
 import static dev.base.workflow.constant.WorkflowConstants.*;
-import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_HTTP_URL_MISSING;
 import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_HTTP_URL_EMPTY;
+import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_HTTP_URL_MISSING;
 
 /**
  * HTTP/REST API integration adapter.

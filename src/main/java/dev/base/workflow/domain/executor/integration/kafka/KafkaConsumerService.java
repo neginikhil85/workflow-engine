@@ -2,8 +2,8 @@ package dev.base.workflow.domain.executor.integration.kafka;
 
 import dev.base.workflow.mongo.collection.NodeDefinition;
 import dev.base.workflow.mongo.collection.NodeExecutionResult;
-import lombok.RequiredArgsConstructor;
 import dev.base.workflow.util.StringUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -13,9 +13,9 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.*;
 
-import static dev.base.workflow.constant.WorkflowConstants.*;
 import static dev.base.workflow.constant.KafkaConstants.*;
-import static dev.base.workflow.constant.WorkflowErrorConstants.*;
+import static dev.base.workflow.constant.WorkflowConstants.*;
+import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_KAFKA_TOPIC_CONSUMER;
 
 /**
  * Handles Kafka Consumer operations.

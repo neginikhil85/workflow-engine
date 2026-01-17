@@ -2,6 +2,7 @@ package dev.base.workflow.model.node.details;
 
 import lombok.Builder;
 import lombok.Data;
+
 import java.util.Map;
 
 @Data
@@ -15,7 +16,6 @@ public class HttpExecutionDetails {
     private Map<String, String> requestHeaders;
 
     private Map<String, String> headers; // Response Headers
-    private Object data; // Response Body
-    private Object response; // Alias for data if needed
+    private Object response; // Response Body
     private String error;
 }

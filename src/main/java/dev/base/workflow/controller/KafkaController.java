@@ -4,17 +4,17 @@ import dev.base.workflow.model.dto.ApiResponse;
 import dev.base.workflow.service.integration.KafkaAdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 import java.util.Set;
 
-import static dev.base.workflow.constant.KafkaConstants.CFG_BOOTSTRAP_SERVERS;
-import static dev.base.workflow.constant.WorkflowConstants.KEY_SUCCESS;
+import static dev.base.workflow.constant.KafkaConstants.*;
 import static dev.base.workflow.constant.WorkflowConstants.KEY_ERROR;
-import static dev.base.workflow.constant.KafkaConstants.CFG_TOPIC_NAME;
-import static dev.base.workflow.constant.KafkaConstants.CFG_PARTITIONS;
-import static dev.base.workflow.constant.KafkaConstants.CFG_REPLICATION_FACTOR;
+import static dev.base.workflow.constant.WorkflowConstants.KEY_SUCCESS;
 
 /**
  * REST API controller for Kafka admin operations.

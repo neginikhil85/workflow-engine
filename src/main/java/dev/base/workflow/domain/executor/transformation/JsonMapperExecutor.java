@@ -1,17 +1,15 @@
 package dev.base.workflow.domain.executor.transformation;
 
-import dev.base.workflow.model.core.ExecutionContext;
 import dev.base.workflow.domain.engine.NodeExecutor;
+import dev.base.workflow.model.core.ExecutionContext;
+import dev.base.workflow.model.nodetype.TransformationNodeType;
 import dev.base.workflow.mongo.collection.NodeDefinition;
 import dev.base.workflow.mongo.collection.NodeExecutionResult;
-import dev.base.workflow.model.nodetype.TransformationNodeType;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-import static dev.base.workflow.constant.WorkflowConstants.CFG_MAPPING;
-import static dev.base.workflow.constant.WorkflowConstants.DEFAULT_FIELD_NEW;
-import static dev.base.workflow.constant.WorkflowConstants.DEFAULT_FIELD_OLD;
+import static dev.base.workflow.constant.WorkflowConstants.*;
 
 @Component
 public class JsonMapperExecutor implements NodeExecutor {

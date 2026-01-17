@@ -2,15 +2,15 @@ package dev.base.workflow.domain.executor.notification;
 
 import dev.base.workflow.domain.engine.NodeExecutor;
 import dev.base.workflow.model.core.ExecutionContext;
-import dev.base.workflow.mongo.collection.NodeDefinition;
-import dev.base.workflow.mongo.collection.NodeExecutionResult;
+import dev.base.workflow.model.node.details.ConsoleExecutionDetails;
 import dev.base.workflow.model.nodetype.NodeType;
 import dev.base.workflow.model.nodetype.NotificationNodeType;
+import dev.base.workflow.mongo.collection.NodeDefinition;
+import dev.base.workflow.mongo.collection.NodeExecutionResult;
 import dev.base.workflow.util.StringUtils;
 import org.springframework.stereotype.Component;
-import java.time.LocalDateTime;
 
-import dev.base.workflow.model.node.details.ConsoleExecutionDetails;
+import java.time.LocalDateTime;
 
 @Component
 public class ConsoleNotificationExecutor implements NodeExecutor {

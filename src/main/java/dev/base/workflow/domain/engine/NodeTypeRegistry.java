@@ -1,14 +1,13 @@
 package dev.base.workflow.domain.engine;
 
 import dev.base.workflow.model.nodetype.NodeType;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static dev.base.workflow.constant.WorkflowErrorConstants.ERR_NO_EXECUTOR;
-import dev.base.workflow.util.StringUtils;
 
 /**
  * Maps NodeType → NodeExecutor dynamically at runtime
@@ -48,6 +47,6 @@ public class NodeTypeRegistry {
     // Actually, "TriggerNodeType" -> "TRIGGER"? No.
     // Let's stick to "TriggerNodeType_WEBHOOK" as the reliable key.
     public static String generateKey(NodeType type) {
-        return StringUtils.concat(type.getClass().getSimpleName(), "_", type.getName());
+        return type.getName();
     }
 }

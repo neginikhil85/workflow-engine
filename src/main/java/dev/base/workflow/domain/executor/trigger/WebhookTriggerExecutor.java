@@ -2,10 +2,10 @@ package dev.base.workflow.domain.executor.trigger;
 
 import dev.base.workflow.domain.engine.NodeExecutor;
 import dev.base.workflow.model.core.ExecutionContext;
-import dev.base.workflow.mongo.collection.NodeDefinition;
-import dev.base.workflow.mongo.collection.NodeExecutionResult;
 import dev.base.workflow.model.nodetype.NodeType;
 import dev.base.workflow.model.nodetype.TriggerNodeType;
+import dev.base.workflow.mongo.collection.NodeDefinition;
+import dev.base.workflow.mongo.collection.NodeExecutionResult;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
