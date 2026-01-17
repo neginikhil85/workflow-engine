@@ -1,7 +1,7 @@
 package dev.base.workflow.controller;
 
 import dev.base.workflow.model.dto.ApiResponse;
-import dev.base.workflow.service.KafkaAdminService;
+import dev.base.workflow.service.integration.KafkaAdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;

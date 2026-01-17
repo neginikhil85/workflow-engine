@@ -9,7 +9,6 @@ import dev.base.workflow.model.nodetype.TriggerNodeType;
 import org.springframework.stereotype.Component;
 
 import dev.base.workflow.model.node.details.CronExecutionDetails;
-import java.util.Map;
 
 import static dev.base.workflow.constant.WorkflowConstants.*;
 
@@ -18,7 +17,7 @@ import static dev.base.workflow.constant.WorkflowConstants.*;
 @lombok.extern.slf4j.Slf4j
 public class CronTriggerExecutor implements NodeExecutor {
 
-    private final dev.base.workflow.service.WorkflowScheduler workflowScheduler;
+    private final dev.base.workflow.service.execution.WorkflowScheduler workflowScheduler;
 
     @Override
     public NodeType getSupportedNodeType() {

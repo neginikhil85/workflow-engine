@@ -26,6 +26,7 @@ public class RequiredFieldsValidatorExecutor implements NodeExecutor {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public NodeExecutionResult execute(NodeDefinition node, Object input,
             ExecutionContext ctx) {
         if (!(input instanceof Map)) {

@@ -4,7 +4,7 @@ import dev.base.workflow.model.dto.ApiResponse;
 import dev.base.workflow.mongo.collection.User;
 import dev.base.workflow.security.AuthenticatedUser;
 import dev.base.workflow.security.JwtService;
-import dev.base.workflow.service.UserService;
+import dev.base.workflow.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;

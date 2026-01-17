@@ -1,4 +1,4 @@
-package dev.base.workflow.service;
+package dev.base.workflow.service.execution;
 
 import dev.base.workflow.constant.WorkflowConstants;
 import dev.base.workflow.domain.event.WorkflowScheduledEvent;

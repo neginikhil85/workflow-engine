@@ -5,6 +5,9 @@ import dev.base.workflow.mongo.collection.WorkflowDefinition;
 import dev.base.workflow.mongo.collection.WorkflowExecution;
 import dev.base.workflow.mongo.collection.WorkflowRun;
 import dev.base.workflow.mongo.collection.NodeExecutionResult;
+import dev.base.workflow.service.execution.WorkflowExecutionService;
+import dev.base.workflow.service.management.WorkflowManagementService;
+import dev.base.workflow.service.query.WorkflowQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

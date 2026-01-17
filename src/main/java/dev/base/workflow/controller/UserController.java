@@ -3,7 +3,7 @@ package dev.base.workflow.controller;
 import dev.base.workflow.model.dto.ApiResponse;
 import dev.base.workflow.mongo.collection.User;
 import dev.base.workflow.mongo.collection.WorkflowDefinition;
-import dev.base.workflow.service.UserService;
+import dev.base.workflow.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;

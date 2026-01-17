@@ -1,4 +1,4 @@
-package dev.base.workflow.service;
+package dev.base.workflow.service.management;
 
 import dev.base.workflow.mongo.collection.NodeDefinition;
 import dev.base.workflow.mongo.collection.WorkflowDefinition;

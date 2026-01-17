@@ -50,7 +50,6 @@ public class HttpCallExecutor implements NodeExecutor {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public NodeExecutionResult execute(NodeDefinition node, Object input, ExecutionContext ctx) {
         validate(node);
 
@@ -119,6 +118,7 @@ public class HttpCallExecutor implements NodeExecutor {
         };
     }
 
+    @SuppressWarnings("unchecked")
     private Map<String, String> extractHeaders(Map<String, Object> config) {
         Map<String, String> headers = new java.util.HashMap<>();
         if (config.containsKey(CFG_HEADERS) && config.get(CFG_HEADERS) instanceof List) {

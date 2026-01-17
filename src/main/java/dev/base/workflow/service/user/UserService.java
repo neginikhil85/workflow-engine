@@ -1,4 +1,4 @@
-package dev.base.workflow.service;
+package dev.base.workflow.service.user;
 
 import dev.base.workflow.exception.UserNotFoundException;
 import dev.base.workflow.mongo.collection.User;

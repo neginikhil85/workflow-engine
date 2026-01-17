@@ -1,4 +1,4 @@
-package dev.base.workflow.service;
+package dev.base.workflow.service.integration;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;

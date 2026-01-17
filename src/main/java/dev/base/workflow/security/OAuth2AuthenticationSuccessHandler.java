@@ -2,7 +2,7 @@ package dev.base.workflow.security;
 
 import dev.base.workflow.config.AppConfig;
 import dev.base.workflow.mongo.collection.User;
-import dev.base.workflow.service.UserService;
+import dev.base.workflow.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
