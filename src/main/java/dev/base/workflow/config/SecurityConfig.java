@@ -3,6 +3,7 @@ package dev.base.workflow.config;
 import dev.base.workflow.security.JwtAuthenticationFilter;
 import dev.base.workflow.security.OAuth2AuthenticationSuccessHandler;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,6 +19,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+import static dev.base.workflow.constant.SecurityConstants.*;
+
 /**
  * Security configuration for OAuth2 login with Google and GitHub.
  */
@@ -28,6 +31,9 @@ public class SecurityConfig {
 
         private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
         private final JwtAuthenticationFilter jwtAuthFilter;
+
+        @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000}")
+        private List<String> allowedOrigins;
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -46,9 +52,9 @@ public class SecurityConfig {
 
         private void configureAuthorizationRules(
                         org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
-                auth.requestMatchers("/", "/error", "/favicon.ico").permitAll()
-                                .requestMatchers("/auth/**", "/oauth2/**", "/login/**").permitAll()
-                                .requestMatchers("/actuator/**").permitAll()
+                auth.requestMatchers(PUBLIC_PATHS).permitAll()
+                                .requestMatchers(AUTH_PATHS).permitAll()
+                                .requestMatchers(ACTUATOR_PATHS).permitAll()
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 .anyRequest().authenticated();
         }
@@ -63,7 +69,7 @@ public class SecurityConfig {
 
         private CorsConfiguration createCorsConfiguration() {
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
+                config.setAllowedOrigins(allowedOrigins);
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
                 config.setAllowCredentials(true);

@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+import static dev.base.workflow.constant.SecurityConstants.*;
+
 /**
  * Handles successful OAuth2 authentication.
  */
@@ -54,38 +56,38 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             HttpServletResponse response,
             User user) throws IOException {
         String token = jwtService.generateToken(user.getId(), user.getEmail(), user.getName());
-        String redirectUrl = frontendUrl + "/auth/callback?token=" + token;
+        String redirectUrl = frontendUrl + AUTH_CALLBACK_PATH + token;
         log.info("Redirecting to: {}", redirectUrl);
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 
     private String extractEmail(OAuth2User oAuth2User, String provider) {
         return switch (provider) {
-            case "google" -> oAuth2User.getAttribute("email");
-            case "github" -> extractGithubEmail(oAuth2User);
-            default -> oAuth2User.getAttribute("email");
+            case PROVIDER_GOOGLE -> oAuth2User.getAttribute(ATTR_EMAIL);
+            case PROVIDER_GITHUB -> extractGithubEmail(oAuth2User);
+            default -> oAuth2User.getAttribute(ATTR_EMAIL);
         };
     }
 
     private String extractGithubEmail(OAuth2User oAuth2User) {
-        String email = oAuth2User.getAttribute("email");
+        String email = oAuth2User.getAttribute(ATTR_EMAIL);
         if (email == null) {
-            String login = oAuth2User.getAttribute("login");
-            return login + "@github.user";
+            String login = oAuth2User.getAttribute(ATTR_LOGIN);
+            return login + GITHUB_EMAIL_FALLBACK_DOMAIN;
         }
         return email;
     }
 
     private String extractName(OAuth2User oAuth2User, String provider) {
         return switch (provider) {
-            case "google" -> oAuth2User.getAttribute("name");
-            case "github" -> extractGithubName(oAuth2User);
-            default -> oAuth2User.getAttribute("name");
+            case PROVIDER_GOOGLE -> oAuth2User.getAttribute(ATTR_NAME);
+            case PROVIDER_GITHUB -> extractGithubName(oAuth2User);
+            default -> oAuth2User.getAttribute(ATTR_NAME);
         };
     }
 
     private String extractGithubName(OAuth2User oAuth2User) {
-        String name = oAuth2User.getAttribute("name");
-        return name != null ? name : oAuth2User.getAttribute("login");
+        String name = oAuth2User.getAttribute(ATTR_NAME);
+        return name != null ? name : oAuth2User.getAttribute(ATTR_LOGIN);
     }
 }
