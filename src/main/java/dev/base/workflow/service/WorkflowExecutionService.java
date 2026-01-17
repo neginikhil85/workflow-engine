@@ -120,9 +120,11 @@ public class WorkflowExecutionService {
 
             // Check for Kafka Consumer
             if ("IntegrationNodeType_KAFKA".equals(type)) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> config = (Map<String, Object>) node.getConfig();
-                return config != null && "CONSUMER".equals(config.get("kafkaMode"));
+                if (node.getConfig() instanceof Map<?, ?>) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> config = (Map<String, Object>) node.getConfig();
+                    return config != null && "CONSUMER".equals(config.get("kafkaMode"));
+                }
             }
             return false;
         });
