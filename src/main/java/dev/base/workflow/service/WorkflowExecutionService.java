@@ -85,14 +85,8 @@ public class WorkflowExecutionService {
             var runResult = workflowEngine.run(workflow, input, run.getId());
             completeExecution(execution, runResult);
 
-            // Auto-complete run for one-time workflows (MANUAL trigger + No continuous
-            // nodes)
-            if (triggerType == WorkflowRun.TriggerType.MANUAL && !isContinuousWorkflow(workflow)) {
-                log.info("Auto-completing run {} for one-time workflow {}", run.getId(), workflowId);
-                run.setStatus(WorkflowRun.RunStatus.COMPLETED);
-                run.setEndTime(LocalDateTime.now());
-                runRepository.save(run);
-            }
+            // Handle potential auto-completion of the run
+            handleOneTimeWorkflowCompletion(run, workflow, triggerType);
 
             return Map.of(
                     KEY_RUN_ID, run.getId(),
@@ -246,6 +240,21 @@ public class WorkflowExecutionService {
             execution.setCompletedAt(LocalDateTime.now());
             execution.setError(ERR_STOPPED_BY_USER);
             executionRepository.save(execution);
+        }
+    }
+
+    /**
+     * Helper to handle auto-completion of one-time workflows
+     */
+    private void handleOneTimeWorkflowCompletion(WorkflowRun run, WorkflowDefinition workflow,
+            WorkflowRun.TriggerType triggerType) {
+        // Auto-complete run for one-time workflows (MANUAL trigger + No continuous
+        // nodes)
+        if (triggerType == WorkflowRun.TriggerType.MANUAL && !isContinuousWorkflow(workflow)) {
+            log.info("Auto-completing run {} for one-time workflow {}", run.getId(), run.getWorkflowId());
+            run.setStatus(WorkflowRun.RunStatus.COMPLETED);
+            run.setEndTime(LocalDateTime.now());
+            runRepository.save(run);
         }
     }
 }
