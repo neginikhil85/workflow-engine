@@ -1,4 +1,4 @@
-package dev.base.workflow.model.dto;
+package dev.base.workflow.model.dto.response.workflow;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.base.workflow.model.core.ExecutionStatus;

@@ -1,4 +1,4 @@
-package dev.base.workflow.model.dto;
+package dev.base.workflow.model.dto.request.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AdapterDTO {
-    private String id;
-    private String name;
-    private String type;
+public class TokenValidationRequest {
+    private String token;
 }

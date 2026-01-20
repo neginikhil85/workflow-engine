@@ -1,6 +1,6 @@
 package dev.base.workflow.controller;
 
-import dev.base.workflow.model.dto.ApiResponse;
+import dev.base.workflow.model.dto.response.common.ApiResponse;
 import dev.base.workflow.mongo.collection.User;
 import dev.base.workflow.mongo.collection.WorkflowDefinition;
 import dev.base.workflow.service.user.UserService;
@@ -15,7 +15,7 @@ import java.util.List;
  * All endpoints return standardized ApiResponse wrapper.
  */
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
 

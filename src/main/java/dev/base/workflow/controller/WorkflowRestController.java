@@ -1,8 +1,8 @@
 package dev.base.workflow.controller;
 
-import dev.base.workflow.model.dto.ApiResponse;
-import dev.base.workflow.model.dto.ExecuteWorkflowRequest;
-import dev.base.workflow.model.dto.WorkflowStatusResponse;
+import dev.base.workflow.model.dto.response.common.ApiResponse;
+import dev.base.workflow.model.dto.request.workflow.ExecuteWorkflowRequest;
+import dev.base.workflow.model.dto.response.workflow.WorkflowStatusResponse;
 import dev.base.workflow.mongo.collection.NodeExecutionResult;
 import dev.base.workflow.mongo.collection.WorkflowDefinition;
 import dev.base.workflow.mongo.collection.WorkflowExecution;
@@ -21,7 +21,7 @@ import static dev.base.workflow.constant.WorkflowResponseConstants.*;
  * All endpoints return standardized ApiResponse wrapper.
  */
 @RestController
-@RequestMapping("/api/workflows")
+@RequestMapping("/api/v1/workflows")
 @RequiredArgsConstructor
 public class WorkflowRestController {
 

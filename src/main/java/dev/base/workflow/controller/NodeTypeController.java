@@ -3,9 +3,9 @@ package dev.base.workflow.controller;
 import dev.base.workflow.domain.core.adapter.IntegrationAdapterRegistry;
 import dev.base.workflow.domain.core.adapter.MessagingAdapter;
 import dev.base.workflow.domain.engine.NodeTypeRegistry;
-import dev.base.workflow.model.dto.AdapterDTO;
-import dev.base.workflow.model.dto.ApiResponse;
-import dev.base.workflow.model.dto.NodeTypeDTO;
+import dev.base.workflow.model.dto.response.adapter.AdapterDTO;
+import dev.base.workflow.model.dto.response.common.ApiResponse;
+import dev.base.workflow.model.dto.response.node.NodeTypeDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * Used by UI to discover available node types and their configurations.
  */
 @RestController
-@RequestMapping("/api/nodes")
+@RequestMapping("/api/v1/nodes")
 @RequiredArgsConstructor
 public class NodeTypeController {
 

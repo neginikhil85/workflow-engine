@@ -1,4 +1,4 @@
-package dev.base.workflow.model.dto;
+package dev.base.workflow.model.dto.response.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

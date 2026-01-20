@@ -1,4 +1,4 @@
-package dev.base.workflow.model.dto;
+package dev.base.workflow.model.dto.response.node;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

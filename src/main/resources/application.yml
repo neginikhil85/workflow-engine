@@ -91,7 +91,7 @@ app:
       - /error
       - /favicon.ico
     auth-paths:
-      - /auth/**
+      - /api/v1/auth/**
       - /oauth2/**
       - /login/**
     actuator-paths:

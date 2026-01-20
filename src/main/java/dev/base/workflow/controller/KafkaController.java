@@ -1,6 +1,6 @@
 package dev.base.workflow.controller;
 
-import dev.base.workflow.model.dto.ApiResponse;
+import dev.base.workflow.model.dto.response.common.ApiResponse;
 import dev.base.workflow.service.integration.KafkaAdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import static dev.base.workflow.constant.WorkflowConstants.KEY_SUCCESS;
  * Used by UI to test connections, list topics, and create topics.
  */
 @RestController
-@RequestMapping("/api/kafka")
+@RequestMapping("/api/v1/kafka")
 @RequiredArgsConstructor
 @Slf4j
 public class KafkaController {
