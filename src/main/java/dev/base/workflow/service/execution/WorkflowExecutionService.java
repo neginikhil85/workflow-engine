@@ -82,7 +82,7 @@ public class WorkflowExecutionService {
      */
     private Object executeWorkflow(String workflowId, Object input, String existingRunId,
             WorkflowRun.TriggerType triggerType) {
-        log.info(LOG_STARTING_EXECUTION, workflowId);
+        log.info(LOG_EXECUTING_WORKFLOW, workflowId);
         WorkflowDefinition workflow = resolveWorkflow(workflowId);
 
         WorkflowRun run = runHelper.getOrCreateRun(workflowId, existingRunId, triggerType);

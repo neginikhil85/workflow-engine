@@ -11,7 +11,7 @@ public final class WorkflowConstants {
     }
 
     // --- Log Prefixes ---
-    public static final String LOG_STARTING_EXECUTION = ">>> STARTING WORKFLOW EXECUTION: {}";
+    public static final String LOG_EXECUTING_WORKFLOW = ">>> EXECUTING WORKFLOW : {}";
     public static final String LOG_STOPPING_WORKFLOW = ">>> STOPPING WORKFLOW: {}";
     public static final String LOG_WORKFLOW_STOPPED = "Workflow {} stopped successfully";
     public static final String LOG_CREATED_RUN = "Created new WorkflowRun: {}";
@@ -29,26 +29,20 @@ public final class WorkflowConstants {
     public static final String KEY_SKIPPED = "skipped";
     public static final String KEY_REASON = "reason";
     public static final String KEY_SUCCESS = "success";
-    public static final String KEY_RESULT = "result";
     public static final String KEY_MESSAGE = "message";
     public static final String KEY_ERROR = "error";
     public static final String KEY_STATUS = "status";
-    public static final String KEY_IS_RUNNING = "isRunning";
 
     // --- Default Values ---
     public static final String DEFAULT_NULL = "null";
     public static final String DEFAULT_VERSION = "1.0.0";
     public static final String REASON_RUN_STOPPED = "Run was stopped";
-    public static final String MSG_WORKFLOW_STOPPED = "Workflow stopped";
     public static final String MSG_EXECUTOR_FOR = "Node executor for ";
 
     // --- Engine Constants ---
     public static final String EXPR_VAR_INPUT = "input";
     public static final String EXPR_VAR_CTX = "ctx";
 
-    // --- HTTP Constants ---
-    public static final String HTTP_CONTENT_TYPE = "Content-Type";
-    public static final String HTTP_CONTENT_TYPE_JSON = "application/json";
     public static final String HTTP_METHOD_GET = "GET";
     public static final String HTTP_METHOD_POST = "POST";
     public static final String HTTP_METHOD_PUT = "PUT";

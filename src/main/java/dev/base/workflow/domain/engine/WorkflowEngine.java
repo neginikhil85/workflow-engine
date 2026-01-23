@@ -82,9 +82,24 @@ public class WorkflowEngine {
 
     private Queue<ExecutionItem> initializeQueue(WorkflowDefinition workflow, Object initialInput) {
         Queue<ExecutionItem> queue = new LinkedList<>();
-        if (workflow.getStartNodeId() != null) {
-            queue.add(new ExecutionItem(workflow.getStartNodeId(), initialInput));
+        Set<String> targetNodes = new HashSet<>();
+
+        // Identify all nodes that are targets of an edge
+        if (workflow.getEdges() != null) {
+            for (Edge edge : workflow.getEdges()) {
+                targetNodes.add(edge.getTo());
+            }
         }
+
+        // Add all nodes that are NOT targets (roots) to the queue
+        if (workflow.getNodes() != null) {
+            for (NodeDefinition node : workflow.getNodes()) {
+                if (!targetNodes.contains(node.getId())) {
+                    queue.add(new ExecutionItem(node.getId(), initialInput));
+                }
+            }
+        }
+
         return queue;
     }
 

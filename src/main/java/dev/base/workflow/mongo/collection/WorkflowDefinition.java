@@ -22,7 +22,6 @@ public class WorkflowDefinition {
 
     private String name;
     private String description;
-    private String startNodeId;
 
     private List<NodeDefinition> nodes = new ArrayList<>();
     private List<Edge> edges = new ArrayList<>();
