@@ -1,9 +1,12 @@
 package dev.base.workflow.controller;
 
-import dev.base.workflow.model.dto.response.common.ApiResponse;
-import dev.base.workflow.model.dto.response.auth.TokenRefreshResponse;
+import dev.base.workflow.model.dto.request.auth.LoginRequest;
+import dev.base.workflow.model.dto.request.auth.RegisterRequest;
 import dev.base.workflow.model.dto.request.auth.TokenValidationRequest;
+import dev.base.workflow.model.dto.response.auth.AuthResponse;
+import dev.base.workflow.model.dto.response.auth.TokenRefreshResponse;
 import dev.base.workflow.model.dto.response.auth.TokenValidationResponse;
+import dev.base.workflow.model.dto.response.common.ApiResponse;
 import dev.base.workflow.mongo.collection.User;
 import dev.base.workflow.security.AuthenticatedUser;
 import dev.base.workflow.service.AuthService;
@@ -47,6 +50,24 @@ public class AuthController {
     @PostMapping("/refresh")
     public ApiResponse<TokenRefreshResponse> refreshToken(@AuthenticationPrincipal AuthenticatedUser auth) {
         TokenRefreshResponse response = authService.refreshToken(auth.getUserId());
+        return ApiResponse.success(response);
+    }
+
+    /**
+     * Register a new user
+     */
+    @PostMapping("/register")
+    public ApiResponse<AuthResponse> register(@RequestBody RegisterRequest request) {
+        AuthResponse response = authService.register(request);
+        return ApiResponse.success(response);
+    }
+
+    /**
+     * Login with email and password
+     */
+    @PostMapping("/login")
+    public ApiResponse<AuthResponse> login(@RequestBody LoginRequest request) {
+        AuthResponse response = authService.login(request);
         return ApiResponse.success(response);
     }
 }

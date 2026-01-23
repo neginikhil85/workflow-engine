@@ -27,6 +27,10 @@ public class User {
     @Indexed(unique = true)
     private String email;
 
+    private String password;
+
+    private AuthProvider provider;
+
     private String name;
 
     private LocalDateTime createdAt;

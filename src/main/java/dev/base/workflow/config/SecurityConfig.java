@@ -43,6 +43,11 @@ public class SecurityConfig {
                                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         }
 
+        @Bean
+        public org.springframework.security.crypto.password.PasswordEncoder passwordEncoder() {
+                return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+        }
+
         private void configureAuthorizationRules(
                         org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
                 var security = appConfig.getSecurity();
