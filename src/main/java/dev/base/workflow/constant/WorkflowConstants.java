@@ -32,6 +32,9 @@ public final class WorkflowConstants {
     public static final String KEY_MESSAGE = "message";
     public static final String KEY_ERROR = "error";
     public static final String KEY_STATUS = "status";
+    public static final String KEY_MESSAGE_COUNT = "messageCount";
+    public static final String KEY_MESSAGES = "messages";
+    public static final String KEY_TIMESTAMP = "timestamp";
 
     // --- Default Values ---
     public static final String DEFAULT_NULL = "null";

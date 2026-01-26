@@ -143,7 +143,7 @@ public class KafkaTriggerManager {
             input.put(CFG_VALUE, record.value());
             input.put(KEY_PARTITION, record.partition());
             input.put(KEY_OFFSET, record.offset());
-            input.put(KEY_TIMESTAMP, record.timestamp());
+            input.put(dev.base.workflow.constant.WorkflowConstants.KEY_TIMESTAMP, record.timestamp());
             input.put(CFG_TOPIC, record.topic());
 
             log.info("Kafka Trigger fired for workflow: {}. Offset: {}", workflowId, record.offset());

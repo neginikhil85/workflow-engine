@@ -1,6 +1,10 @@
 package dev.base.workflow.service.integration;
 
-import dev.base.workflow.util.StringUtils;
+import dev.base.workflow.model.dto.request.kafka.KafkaConnectionRequest;
+import dev.base.workflow.model.dto.request.kafka.KafkaConnectionResponse;
+import dev.base.workflow.model.dto.request.kafka.KafkaTopicRequest;
+import dev.base.workflow.model.dto.request.kafka.KafkaTopicResponse;
+import org.springframework.util.StringUtils;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.*;
@@ -14,8 +18,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static dev.base.workflow.constant.KafkaConstants.*;
-import static dev.base.workflow.constant.WorkflowConstants.KEY_ERROR;
-import static dev.base.workflow.constant.WorkflowConstants.KEY_SUCCESS;
 
 /**
  * Service for Kafka admin operations: test connection, list/create topics.
@@ -33,18 +35,16 @@ public class KafkaAdminService {
      * Get or create AdminClient for the given configuration.
      * Cached clients are reused if config matches and TTL hasn't expired.
      */
-    private AdminClient getOrCreateAdminClient(Map<String, Object> config) {
-        String cacheKey = buildCacheKey(config);
+    private AdminClient getOrCreateAdminClient(KafkaConnectionRequest request) {
+        String cacheKey = buildCacheKey(request);
 
         CachedAdminClient cached = adminClientCache.get(cacheKey);
         if (cached != null && !cached.isExpired()) {
-            log.debug("Reusing cached AdminClient for: {}", config.get(CFG_BOOTSTRAP_SERVERS));
             return cached.client;
         }
 
         // Close expired client if exists
         if (cached != null) {
-            log.debug("Closing expired AdminClient for: {}", config.get(CFG_BOOTSTRAP_SERVERS));
             try {
                 cached.client.close();
             } catch (Exception e) {
@@ -52,65 +52,59 @@ public class KafkaAdminService {
             }
         }
 
-        log.info("Creating new AdminClient for: {}", config.get(CFG_BOOTSTRAP_SERVERS));
-        AdminClient newClient = AdminClient.create(buildAdminProperties(config));
+        log.info("Creating new AdminClient for: {}", request.getBootstrapServers());
+        AdminClient newClient = AdminClient.create(buildAdminProperties(request));
         adminClientCache.put(cacheKey, new CachedAdminClient(newClient));
 
         return newClient;
     }
 
-    /**
-     * Build a cache key from configuration.
-     * Key is based on connection-relevant properties only.
-     */
-    private String buildCacheKey(Map<String, Object> config) {
-        return StringUtils.concat(config.get(CFG_BOOTSTRAP_SERVERS), "|",
-                config.get(CFG_SECURITY_PROTOCOL), "|",
-                config.get(CFG_SASL_MECHANISM), "|",
-                config.get(CFG_SASL_JAAS_CONFIG), "|",
-                config.get(CFG_SSL_KEYSTORE_LOC));
+    private String buildCacheKey(KafkaConnectionRequest request) {
+        return request.getBootstrapServers() + "|" +
+                request.getSecurityProtocol() + "|" +
+                request.getSaslMechanism() + "|" +
+                request.getSaslJaasConfig() + "|" +
+                request.getSslKeyStoreLocation();
     }
 
-    /**
-     * Build Kafka AdminClient properties from config map.
-     */
-    private Properties buildAdminProperties(Map<String, Object> config) {
+    private Properties buildAdminProperties(KafkaConnectionRequest request) {
         Properties props = new Properties();
 
-        String bootstrapServers = (String) config.getOrDefault(CFG_BOOTSTRAP_SERVERS, DEFAULT_BOOTSTRAP_SERVERS);
-        String securityProtocol = (String) config.getOrDefault(CFG_SECURITY_PROTOCOL, VAL_SEC_PROTO_PLAINTEXT);
+        String bootstrapServers = StringUtils.hasText(request.getBootstrapServers()) ? request.getBootstrapServers()
+                : DEFAULT_BOOTSTRAP_SERVERS;
+        String securityProtocol = StringUtils.hasText(request.getSecurityProtocol()) ? request.getSecurityProtocol()
+                : VAL_SEC_PROTO_PLAINTEXT;
 
         props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(AdminClientConfig.SECURITY_PROTOCOL_CONFIG, securityProtocol);
         props.put(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, KAFKA_TIMEOUT_SECONDS * 1000);
         props.put(AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG, KAFKA_TIMEOUT_SECONDS * 1000);
-
-        // Unique client ID to distinguish in logs
         props.put(AdminClientConfig.CLIENT_ID_CONFIG, CLIENT_ID_PREFIX + bootstrapServers.hashCode());
 
         // SSL Configuration
         if (VAL_SEC_PROTO_SSL.equals(securityProtocol) || VAL_SEC_PROTO_SASL_SSL.equals(securityProtocol)) {
-            if (config.containsKey(CFG_SSL_TRUSTSTORE_LOC)) {
-                props.put(PROP_SSL_TRUSTSTORE_LOC, config.get(CFG_SSL_TRUSTSTORE_LOC));
+            if (StringUtils.hasText(request.getSslTrustStoreLocation())) {
+                props.put(PROP_SSL_TRUSTSTORE_LOC, request.getSslTrustStoreLocation());
             }
-            if (config.containsKey(CFG_SSL_TRUSTSTORE_PWD)) {
-                props.put(PROP_SSL_TRUSTSTORE_PWD, config.get(CFG_SSL_TRUSTSTORE_PWD));
+            if (StringUtils.hasText(request.getSslTrustStorePassword())) {
+                props.put(PROP_SSL_TRUSTSTORE_PWD, request.getSslTrustStorePassword());
             }
-            if (config.containsKey(CFG_SSL_KEYSTORE_LOC)) {
-                props.put(PROP_SSL_KEYSTORE_LOC, config.get(CFG_SSL_KEYSTORE_LOC));
+            if (StringUtils.hasText(request.getSslKeyStoreLocation())) {
+                props.put(PROP_SSL_KEYSTORE_LOC, request.getSslKeyStoreLocation());
             }
-            if (config.containsKey(CFG_SSL_KEYSTORE_PWD)) {
-                props.put(PROP_SSL_KEYSTORE_PWD, config.get(CFG_SSL_KEYSTORE_PWD));
+            if (StringUtils.hasText(request.getSslKeyStorePassword())) {
+                props.put(PROP_SSL_KEYSTORE_PWD, request.getSslKeyStorePassword());
             }
         }
 
         // SASL Configuration
         if (VAL_SEC_PROTO_SASL_PLAINTEXT.equals(securityProtocol) || VAL_SEC_PROTO_SASL_SSL.equals(securityProtocol)) {
-            String saslMechanism = (String) config.getOrDefault(CFG_SASL_MECHANISM, VAL_SASL_MECH_PLAIN);
+            String saslMechanism = StringUtils.hasText(request.getSaslMechanism()) ? request.getSaslMechanism()
+                    : VAL_SASL_MECH_PLAIN;
             props.put(PROP_SASL_MECHANISM, saslMechanism);
 
-            if (config.containsKey(CFG_SASL_JAAS_CONFIG)) {
-                props.put(PROP_SASL_JAAS_CONFIG, config.get(CFG_SASL_JAAS_CONFIG));
+            if (StringUtils.hasText(request.getSaslJaasConfig())) {
+                props.put(PROP_SASL_JAAS_CONFIG, request.getSaslJaasConfig());
             }
         }
 
@@ -119,94 +113,86 @@ public class KafkaAdminService {
 
     /**
      * Test connection to Kafka cluster.
-     *
-     * @return Map with success status, clusterId, and broker list
      */
-    public Map<String, Object> testConnection(Map<String, Object> config) {
-        Map<String, Object> result = new HashMap<>();
-
+    public KafkaConnectionResponse testConnection(KafkaConnectionRequest request) {
         try {
-            AdminClient adminClient = getOrCreateAdminClient(config);
+            AdminClient adminClient = getOrCreateAdminClient(request);
             DescribeClusterResult cluster = adminClient.describeCluster();
 
             String clusterId = cluster.clusterId().get(KAFKA_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             Collection<Node> nodes = cluster.nodes().get(KAFKA_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             List<String> brokers = nodes.stream()
-                    .map(node -> StringUtils.concat(node.host(), ":", node.port()))
+                    .map(node -> node.host() + ":" + node.port())
                     .toList();
-
-            result.put(KEY_SUCCESS, true);
-            result.put(KEY_CLUSTER_ID, clusterId);
-            result.put(KEY_BROKERS, brokers);
-            result.put(KEY_BROKER_COUNT, brokers.size());
 
             log.info("Kafka connection test successful. Cluster: {}, Brokers: {}", clusterId, brokers);
 
+            return KafkaConnectionResponse.builder()
+                    .success(true)
+                    .clusterId(clusterId)
+                    .brokers(brokers)
+                    .brokerCount(brokers.size())
+                    .build();
+
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
             log.error("Kafka connection test failed", e);
-            result.put(KEY_SUCCESS, false);
-            result.put(KEY_ERROR, e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
+            invalidateCache(request);
 
-            // Invalidate cache on connection failure
-            invalidateCache(config);
+            return KafkaConnectionResponse.builder()
+                    .success(false)
+                    .error(e.getCause() != null ? e.getCause().getMessage() : e.getMessage())
+                    .build();
         }
-
-        return result;
     }
 
     /**
      * List all topics in the Kafka cluster.
      */
-    public Set<String> listTopics(Map<String, Object> config) {
+    public Set<String> listTopics(KafkaConnectionRequest request) {
         try {
-            AdminClient adminClient = getOrCreateAdminClient(config);
+            AdminClient adminClient = getOrCreateAdminClient(request);
             ListTopicsResult topicsResult = adminClient.listTopics();
-            Set<String> topics = topicsResult.names().get(KAFKA_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            log.debug("Listed {} topics from Kafka", topics.size());
-            return topics;
+            return topicsResult.names().get(KAFKA_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
             log.error("Failed to list Kafka topics", e);
-            invalidateCache(config);
-            throw new RuntimeException(StringUtils.concat("Failed to list topics: ", e.getMessage()), e);
+            invalidateCache(request);
+            throw new RuntimeException("Failed to list topics: " + e.getMessage(), e);
         }
     }
 
     /**
      * Create a new topic in Kafka.
      */
-    public Map<String, Object> createTopic(Map<String, Object> config, String topicName, int partitions,
-            short replicationFactor) {
-        Map<String, Object> result = new HashMap<>();
-
+    public KafkaTopicResponse createTopic(KafkaTopicRequest request) {
+        String topicName = request.getTopicName();
         try {
-            AdminClient adminClient = getOrCreateAdminClient(config);
-            NewTopic newTopic = new NewTopic(topicName, partitions, replicationFactor);
+            AdminClient adminClient = getOrCreateAdminClient(request);
+            NewTopic newTopic = new NewTopic(topicName, request.getPartitions(), request.getReplicationFactor());
             adminClient.createTopics(Collections.singleton(newTopic))
                     .all()
                     .get(KAFKA_TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-            result.put(KEY_SUCCESS, true);
-            result.put(CFG_TOPIC_NAME, topicName);
-            result.put(CFG_PARTITIONS, partitions);
-            result.put(CFG_REPLICATION_FACTOR, replicationFactor);
+            log.info("Created Kafka topic: {}", topicName);
 
-            log.info("Created Kafka topic: {} with {} partitions", topicName, partitions);
+            return KafkaTopicResponse.builder()
+                    .success(true)
+                    .topicName(topicName)
+                    .partitions(request.getPartitions())
+                    .replicationFactor(request.getReplicationFactor())
+                    .build();
 
         } catch (ExecutionException | InterruptedException | TimeoutException e) {
             log.error("Failed to create Kafka topic: {}", topicName, e);
-            result.put(KEY_SUCCESS, false);
-            result.put(KEY_ERROR, e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
+            return KafkaTopicResponse.builder()
+                    .success(false)
+                    .error(e.getCause() != null ? e.getCause().getMessage() : e.getMessage())
+                    .build();
         }
-
-        return result;
     }
 
-    /**
-     * Invalidate cached client for a given configuration.
-     */
-    private void invalidateCache(Map<String, Object> config) {
-        String cacheKey = buildCacheKey(config);
+    private void invalidateCache(KafkaConnectionRequest request) {
+        String cacheKey = buildCacheKey(request);
         CachedAdminClient cached = adminClientCache.remove(cacheKey);
         if (cached != null) {
             try {
@@ -217,12 +203,8 @@ public class KafkaAdminService {
         }
     }
 
-    /**
-     * Clean up all cached clients on shutdown.
-     */
     @PreDestroy
     public void cleanup() {
-        log.info("Cleaning up {} cached Kafka AdminClients", adminClientCache.size());
         adminClientCache.values().forEach(cached -> {
             try {
                 cached.client.close();
@@ -233,9 +215,6 @@ public class KafkaAdminService {
         adminClientCache.clear();
     }
 
-    /**
-     * Wrapper class for cached AdminClient with creation timestamp.
-     */
     private static class CachedAdminClient {
         final AdminClient client;
         final long createdAt;

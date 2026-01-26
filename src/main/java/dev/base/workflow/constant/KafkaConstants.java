@@ -63,8 +63,5 @@ public final class KafkaConstants {
     public static final String KEY_COUNT = "count";
     public static final String KEY_OFFSET = "offset";
     public static final String KEY_PARTITION = "partition";
-    public static final String KEY_MESSAGES = "messages";
-    public static final String KEY_MESSAGE_COUNT = "messageCount";
-    public static final String KEY_TIMESTAMP = "timestamp";
 
 }

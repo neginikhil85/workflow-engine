@@ -1,5 +1,9 @@
 package dev.base.workflow.controller;
 
+import dev.base.workflow.model.dto.request.kafka.KafkaConnectionRequest;
+import dev.base.workflow.model.dto.request.kafka.KafkaConnectionResponse;
+import dev.base.workflow.model.dto.request.kafka.KafkaTopicRequest;
+import dev.base.workflow.model.dto.request.kafka.KafkaTopicResponse;
 import dev.base.workflow.model.dto.response.common.ApiResponse;
 import dev.base.workflow.service.integration.KafkaAdminService;
 import lombok.RequiredArgsConstructor;
@@ -9,12 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
 import java.util.Set;
-
-import static dev.base.workflow.constant.KafkaConstants.*;
-import static dev.base.workflow.constant.WorkflowConstants.KEY_ERROR;
-import static dev.base.workflow.constant.WorkflowConstants.KEY_SUCCESS;
 
 /**
  * REST API controller for Kafka admin operations.
@@ -32,47 +31,23 @@ public class KafkaController {
      * Test connection to Kafka cluster.
      */
     @PostMapping("/test-connection")
-    public ApiResponse<Map<String, Object>> testConnection(@RequestBody Map<String, Object> config) {
-        log.info("Testing Kafka connection to: {}", config.get(CFG_BOOTSTRAP_SERVERS));
-        Map<String, Object> result = kafkaAdminService.testConnection(config);
-
-        if (Boolean.TRUE.equals(result.get(KEY_SUCCESS))) {
-            return ApiResponse.success(result, "Connection successful");
-        } else {
-            return ApiResponse.error((String) result.get(KEY_ERROR));
-        }
+    public ApiResponse<KafkaConnectionResponse> testConnection(@RequestBody KafkaConnectionRequest request) {
+        return ApiResponse.success(kafkaAdminService.testConnection(request));
     }
 
     /**
      * List all topics in Kafka cluster.
      */
     @PostMapping("/topics")
-    public ApiResponse<Set<String>> listTopics(@RequestBody Map<String, Object> config) {
-        log.info("Listing Kafka topics from: {}", config.get(CFG_BOOTSTRAP_SERVERS));
-        Set<String> topics = kafkaAdminService.listTopics(config);
-        return ApiResponse.success(topics);
+    public ApiResponse<Set<String>> listTopics(@RequestBody KafkaConnectionRequest request) {
+        return ApiResponse.success(kafkaAdminService.listTopics(request));
     }
 
     /**
      * Create a new topic in Kafka cluster.
      */
     @PostMapping("/topics/create")
-    public ApiResponse<Map<String, Object>> createTopic(@RequestBody Map<String, Object> request) {
-        String topicName = (String) request.get(CFG_TOPIC_NAME);
-        int partitions = request.containsKey(CFG_PARTITIONS)
-                ? ((Number) request.get(CFG_PARTITIONS)).intValue()
-                : 1;
-        short replicationFactor = request.containsKey(CFG_REPLICATION_FACTOR)
-                ? ((Number) request.get(CFG_REPLICATION_FACTOR)).shortValue()
-                : 1;
-
-        log.info("Creating Kafka topic: {} with {} partitions", topicName, partitions);
-        Map<String, Object> result = kafkaAdminService.createTopic(request, topicName, partitions, replicationFactor);
-
-        if (Boolean.TRUE.equals(result.get(KEY_SUCCESS))) {
-            return ApiResponse.success(result, "Topic created successfully");
-        } else {
-            return ApiResponse.error((String) result.get(KEY_ERROR));
-        }
+    public ApiResponse<KafkaTopicResponse> createTopic(@RequestBody KafkaTopicRequest request) {
+        return ApiResponse.success(kafkaAdminService.createTopic(request));
     }
 }
