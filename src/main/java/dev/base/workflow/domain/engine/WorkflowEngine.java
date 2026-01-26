@@ -1,17 +1,18 @@
 package dev.base.workflow.domain.engine;
 
 import dev.base.workflow.exception.WorkflowException;
-import dev.base.workflow.model.core.Edge;
 import dev.base.workflow.model.core.ExecutionContext;
 import dev.base.workflow.mongo.collection.NodeDefinition;
 import dev.base.workflow.mongo.collection.NodeExecutionResult;
 import dev.base.workflow.mongo.collection.WorkflowDefinition;
+import dev.base.workflow.service.EnvironmentService;
 import dev.base.workflow.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import dev.base.workflow.domain.engine.support.WorkflowGraph;
 
 import static dev.base.workflow.constant.WorkflowConstants.*;
 
@@ -21,10 +22,13 @@ public class WorkflowEngine {
 
     private final NodeTypeRegistry registry;
     private final ExpressionEvaluator evaluator;
+    private final EnvironmentService environmentService;
 
-    public WorkflowEngine(NodeTypeRegistry registry, ExpressionEvaluator evaluator) {
+    public WorkflowEngine(NodeTypeRegistry registry, ExpressionEvaluator evaluator,
+            EnvironmentService environmentService) {
         this.registry = registry;
         this.evaluator = evaluator;
+        this.environmentService = environmentService;
     }
 
     public WorkflowRunResult run(WorkflowDefinition workflow, Object initialInput) {
@@ -32,31 +36,39 @@ public class WorkflowEngine {
     }
 
     public WorkflowRunResult run(WorkflowDefinition workflow, Object initialInput, String runId) {
-        Map<String, NodeDefinition> nodeMap = mapNodes(workflow.getNodes());
-        Map<String, List<Edge>> graph = mapEdges(workflow.getEdges());
-        ExecutionContext context = createExecutionContext(workflow, runId);
+        WorkflowGraph graph = new WorkflowGraph(workflow);
+        ExecutionContext context = prepareExecutionContext(workflow, runId);
+        Queue<ExecutionItem> queue = initializeQueue(graph, initialInput);
 
-        Queue<ExecutionItem> queue = initializeQueue(workflow, initialInput);
-        Object lastOutput = initialInput;
+        return executeWorkflowLoop(graph, context, queue, initialInput, runId);
+    }
+
+    private ExecutionContext prepareExecutionContext(WorkflowDefinition workflow, String runId) {
+        ExecutionContext context = createExecutionContext(workflow, runId);
+        context.put(EXPR_VAR_ENV, environmentService.getGlobalContext());
+        return context;
+    }
+
+    private WorkflowRunResult executeWorkflowLoop(WorkflowGraph graph, ExecutionContext context,
+            Queue<ExecutionItem> queue, Object initialInput, String runId) {
         List<String> executedNodeIds = new ArrayList<>();
         List<NodeExecutionResult> nodeResults = new ArrayList<>();
-
-        int safetyCounter = 0;
+        Object lastOutput = initialInput;
+        int steps = 0;
         final int MAX_STEPS = 1000;
 
         while (!queue.isEmpty()) {
-            checkMaxSteps(++safetyCounter, MAX_STEPS);
+            checkMaxSteps(++steps, MAX_STEPS);
 
             ExecutionItem item = queue.poll();
-            NodeDefinition node = nodeMap.get(item.nodeId);
+            NodeDefinition node = graph.getNode(item.nodeId);
 
             if (node == null)
                 continue;
 
-            executedNodeIds.add(node.getId());
-            context.put(KEY_CURRENT_NODE_ID, node.getId());
+            NodeExecutionResult result = executeNodeStep(node, item, context, runId);
 
-            NodeExecutionResult result = executeNodeWithMonitoring(node, item.executionData, context, runId);
+            executedNodeIds.add(node.getId());
             nodeResults.add(result);
 
             if (result.getStatus() == NodeExecutionResult.Status.SUCCESS) {
@@ -70,6 +82,12 @@ public class WorkflowEngine {
         return new WorkflowRunResult(lastOutput, executedNodeIds, nodeResults);
     }
 
+    private NodeExecutionResult executeNodeStep(NodeDefinition node, ExecutionItem item,
+            ExecutionContext context, String runId) {
+        context.put(KEY_CURRENT_NODE_ID, node.getId());
+        return executeNodeWithMonitoring(node, item.executionData, context, runId);
+    }
+
     private ExecutionContext createExecutionContext(WorkflowDefinition workflow, String runId) {
         ExecutionContext context = new ExecutionContext();
         context.put(KEY_WORKFLOW_ID, workflow.getId());
@@ -80,26 +98,13 @@ public class WorkflowEngine {
         return context;
     }
 
-    private Queue<ExecutionItem> initializeQueue(WorkflowDefinition workflow, Object initialInput) {
+    private Queue<ExecutionItem> initializeQueue(WorkflowGraph graph, Object initialInput) {
         Queue<ExecutionItem> queue = new LinkedList<>();
-        Set<String> targetNodes = new HashSet<>();
+        List<NodeDefinition> roots = graph.getRootNodes();
 
-        // Identify all nodes that are targets of an edge
-        if (workflow.getEdges() != null) {
-            for (Edge edge : workflow.getEdges()) {
-                targetNodes.add(edge.getTo());
-            }
+        for (NodeDefinition node : roots) {
+            queue.add(new ExecutionItem(node.getId(), initialInput));
         }
-
-        // Add all nodes that are NOT targets (roots) to the queue
-        if (workflow.getNodes() != null) {
-            for (NodeDefinition node : workflow.getNodes()) {
-                if (!targetNodes.contains(node.getId())) {
-                    queue.add(new ExecutionItem(node.getId(), initialInput));
-                }
-            }
-        }
-
         return queue;
     }
 
@@ -135,11 +140,11 @@ public class WorkflowEngine {
         result.setStartedAt(result.getCompletedAt().minusNanos(result.getDuration() * 1000000));
     }
 
-    private void processSuccess(NodeExecutionResult result, NodeDefinition node, Map<String, List<Edge>> graph,
+    private void processSuccess(NodeExecutionResult result, NodeDefinition node, WorkflowGraph graph,
             ExecutionContext context, Queue<ExecutionItem> queue) {
         List<String> nextNodes = result.getNextNodes();
         if (CollectionUtils.isEmpty(nextNodes)) {
-            nextNodes = determineNextNodes(node, result.getExecutionDetails(), graph, context);
+            nextNodes = graph.determineNextNodes(node, result.getExecutionDetails(), evaluator, context);
         }
 
         for (String nextId : nextNodes) {
@@ -147,40 +152,11 @@ public class WorkflowEngine {
         }
     }
 
-    private Map<String, NodeDefinition> mapNodes(List<NodeDefinition> nodes) {
-        Map<String, NodeDefinition> nodeMap = new HashMap<>();
-        for (NodeDefinition node : nodes)
-            nodeMap.put(node.getId(), node);
-        return nodeMap;
-    }
-
-    private Map<String, List<Edge>> mapEdges(List<Edge> edges) {
-        Map<String, List<Edge>> graph = new HashMap<>();
-        for (Edge e : edges)
-            graph.computeIfAbsent(e.getFrom(), k -> new ArrayList<>()).add(e);
-        return graph;
-    }
-
     private NodeExecutionResult executeNode(NodeDefinition node, Object input,
             ExecutionContext context) {
         var executor = registry.resolve(node.getNodeType());
         executor.validate(node);
         return executor.execute(node, input, context);
-    }
-
-    private List<String> determineNextNodes(NodeDefinition node, Object data, Map<String, List<Edge>> graph,
-            ExecutionContext context) {
-        List<Edge> outgoing = graph.get(node.getId());
-        if (CollectionUtils.isEmpty(outgoing))
-            return Collections.emptyList();
-
-        List<String> nextIds = new ArrayList<>();
-        for (Edge e : outgoing) {
-            if (e.getCondition() == null || evaluator.evaluate(e.getCondition(), data, context)) {
-                nextIds.add(e.getTo());
-            }
-        }
-        return nextIds;
     }
 
     private static class ExecutionItem {

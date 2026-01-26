@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import static dev.base.workflow.constant.WorkflowConstants.EXPR_VAR_CTX;
 import static dev.base.workflow.constant.WorkflowConstants.EXPR_VAR_INPUT;
+import static dev.base.workflow.constant.WorkflowConstants.EXPR_VAR_ENV;
 
 /**
  * Evaluates runtime conditions and templates using Spring Expression Language
@@ -68,10 +69,22 @@ public class ExpressionEvaluator {
      * Builds SpEL evaluation context
      */
     private StandardEvaluationContext buildContext(Object input, ExecutionContext ctx) {
-        StandardEvaluationContext context = new StandardEvaluationContext();
+        java.util.Map<String, Object> root = new java.util.HashMap<>();
+        root.put(EXPR_VAR_INPUT, input);
+        root.put(EXPR_VAR_CTX, ctx);
+
+        // Expose 'env' directly if available
+        if (ctx.get(EXPR_VAR_ENV) != null) {
+            root.put(EXPR_VAR_ENV, ctx.get(EXPR_VAR_ENV));
+        }
+
+        StandardEvaluationContext context = new StandardEvaluationContext(root);
         context.addPropertyAccessor(new MapAccessor());
+
+        // Also set as variables for backward compatibility or # reference
         context.setVariable(EXPR_VAR_INPUT, input);
         context.setVariable(EXPR_VAR_CTX, ctx);
+
         return context;
     }
 

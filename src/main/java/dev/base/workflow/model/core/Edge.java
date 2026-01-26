@@ -16,4 +16,6 @@ public class Edge {
     private String to;
     private String condition; // optional runtime condition (SpEL expression)
     private String label; // optional label for UI display
+    private String sourceHandle; // optional: specific port ID (e.g. "r-out")
+    private String targetHandle; // optional: specific port ID (e.g. "l-in")
 }

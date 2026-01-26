@@ -31,7 +31,8 @@ class ParallelExecutionTest {
     void setUp() {
         registry = mock(NodeTypeRegistry.class);
         evaluator = mock(ExpressionEvaluator.class);
-        workflowEngine = new WorkflowEngine(registry, evaluator);
+        EnvironmentService environmentService = mock(EnvironmentService.class);
+        workflowEngine = new WorkflowEngine(registry, evaluator, environmentService);
     }
 
     @Test
@@ -48,8 +49,8 @@ class ParallelExecutionTest {
         workflow.setName("Parallel Test Workflow");
         workflow.setNodes(List.of(nodeA, nodeB, nodeC, nodeD));
         workflow.setEdges(List.of(
-                new Edge("A", "C", null, null),
-                new Edge("B", "D", null, null)));
+                new Edge("A", "C", null, null, null, null),
+                new Edge("B", "D", null, null, null, null)));
 
         // 3. Mock Execution Logic
         NodeExecutor mockExecutor = mock(NodeExecutor.class);

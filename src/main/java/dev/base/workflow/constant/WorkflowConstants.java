@@ -42,6 +42,7 @@ public final class WorkflowConstants {
     // --- Engine Constants ---
     public static final String EXPR_VAR_INPUT = "input";
     public static final String EXPR_VAR_CTX = "ctx";
+    public static final String EXPR_VAR_ENV = "env";
 
     public static final String HTTP_METHOD_GET = "GET";
     public static final String HTTP_METHOD_POST = "POST";
