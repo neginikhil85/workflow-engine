@@ -2,19 +2,12 @@ package dev.base.workflow.service;
 
 import dev.base.workflow.domain.engine.*;
 import dev.base.workflow.model.core.Edge;
-import dev.base.workflow.model.core.ExecutionContext;
 import dev.base.workflow.mongo.collection.NodeDefinition;
 import dev.base.workflow.mongo.collection.NodeExecutionResult;
 import dev.base.workflow.mongo.collection.WorkflowDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;

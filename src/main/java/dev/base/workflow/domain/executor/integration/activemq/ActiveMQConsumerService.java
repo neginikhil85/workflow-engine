@@ -2,14 +2,11 @@ package dev.base.workflow.domain.executor.integration.activemq;
 
 import dev.base.workflow.mongo.collection.NodeDefinition;
 import dev.base.workflow.mongo.collection.NodeExecutionResult;
-import org.springframework.util.StringUtils;
-
 import jakarta.jms.Message;
 import jakarta.jms.TextMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.ActiveMQSslConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +21,8 @@ import static dev.base.workflow.constant.WorkflowConstants.*;
 @Slf4j
 @RequiredArgsConstructor
 public class ActiveMQConsumerService {
+
+    private final ActiveMQPropertiesBuilder propertiesBuilder;
 
     public NodeExecutionResult consume(NodeDefinition node, Map<String, Object> config) {
         try {
@@ -71,55 +70,13 @@ public class ActiveMQConsumerService {
     }
 
     private JmsTemplate createConfiguredJmsTemplate(Map<String, Object> config) throws Exception {
-        ActiveMQConnectionFactory connectionFactory = createConnectionFactory(config);
+        ActiveMQConnectionFactory connectionFactory = propertiesBuilder.buildConnectionFactory(config);
         JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
 
         jmsTemplate.setReceiveTimeout(getPollTimeout(config));
         jmsTemplate.setPubSubDomain(isTopic(config));
 
         return jmsTemplate;
-    }
-
-    private ActiveMQConnectionFactory createConnectionFactory(Map<String, Object> config) throws Exception {
-        ActiveMQConnectionFactory factory = isSslEnabled(config)
-                ? createSslConnectionFactory(config)
-                : new ActiveMQConnectionFactory(getBrokerUrl(config));
-
-        configureCredentials(factory, config);
-        return factory;
-    }
-
-    private ActiveMQConnectionFactory createSslConnectionFactory(Map<String, Object> config) throws Exception {
-        ActiveMQSslConnectionFactory sslFactory = new ActiveMQSslConnectionFactory(getBrokerUrl(config));
-        configureSslProperties(sslFactory, config);
-        return sslFactory;
-    }
-
-    private void configureSslProperties(ActiveMQSslConnectionFactory factory, Map<String, Object> config)
-            throws Exception {
-        String trustStore = (String) config.get(CFG_SSL_TRUSTSTORE_LOC);
-        String trustStorePwd = (String) config.get(CFG_SSL_TRUSTSTORE_PWD);
-        String keyStore = (String) config.get(CFG_SSL_KEYSTORE_LOC);
-        String keyStorePwd = (String) config.get(CFG_SSL_KEYSTORE_PWD);
-
-        if (StringUtils.hasText(trustStore))
-            factory.setTrustStore(trustStore);
-        if (StringUtils.hasText(trustStorePwd))
-            factory.setTrustStorePassword(trustStorePwd);
-        if (StringUtils.hasText(keyStore))
-            factory.setKeyStore(keyStore);
-        if (StringUtils.hasText(keyStorePwd))
-            factory.setKeyStorePassword(keyStorePwd);
-    }
-
-    private void configureCredentials(ActiveMQConnectionFactory factory, Map<String, Object> config) {
-        String username = (String) config.get(CFG_USERNAME);
-        String password = (String) config.get(CFG_PASSWORD);
-
-        if (StringUtils.hasText(username))
-            factory.setUserName(username);
-        if (StringUtils.hasText(password))
-            factory.setPassword(password);
     }
 
     private Map<String, Object> extractMessageData(Message message) throws Exception {
@@ -144,10 +101,6 @@ public class ActiveMQConsumerService {
 
     // --- Config Helpers ---
 
-    private String getBrokerUrl(Map<String, Object> config) {
-        return (String) config.get(CFG_BROKER_URL);
-    }
-
     private String getDestinationName(Map<String, Object> config) {
         return (String) config.get(CFG_DESTINATION_NAME);
     }
@@ -155,10 +108,6 @@ public class ActiveMQConsumerService {
     private boolean isTopic(Map<String, Object> config) {
         String type = (String) config.getOrDefault(CFG_DESTINATION_TYPE, DESTINATION_TYPE_QUEUE);
         return DESTINATION_TYPE_TOPIC.equalsIgnoreCase(type);
-    }
-
-    private boolean isSslEnabled(Map<String, Object> config) {
-        return Boolean.TRUE.equals(config.get(CFG_SSL_ENABLED));
     }
 
     private int getPollTimeout(Map<String, Object> config) {

@@ -58,7 +58,8 @@ public class WorkflowRun {
         MANUAL,
         CRON,
         WEBHOOK,
-        KAFKA
+        KAFKA,
+        ACTIVEMQ
     }
 
     public enum RunStatus {

@@ -6,7 +6,8 @@ public enum TriggerNodeType implements NodeType {
     WEBHOOK("TriggerNodeType_WEBHOOK"),
     CRON("TriggerNodeType_CRON"),
     FILE_CHANGE("TriggerNodeType_FILE_CHANGE"),
-    KAFKA("TriggerNodeType_KAFKA");
+    KAFKA("TriggerNodeType_KAFKA"),
+    ACTIVEMQ("TriggerNodeType_ACTIVEMQ");
 
     private final String type;
 

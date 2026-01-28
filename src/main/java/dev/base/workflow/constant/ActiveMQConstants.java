@@ -30,4 +30,9 @@ public class ActiveMQConstants {
 
     public static final String CFG_POLL_TIMEOUT_MS = "pollTimeoutMs";
     public static final String CFG_BATCH_SIZE = "batchSize";
+
+    public static final String KEY_MESSAGE_ID = "messageId";
+    public static final String KEY_CORRELATION_ID = "correlationId";
+    public static final String KEY_DESTINATION = "destination";
+    public static final String KEY_TYPE = "type";
 }
